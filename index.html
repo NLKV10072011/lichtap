@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>V-ATHLETE — Chương trình 12 tuần</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,12 +28,46 @@
     --ease:cubic-bezier(.22,1,.36,1);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);}
-  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh; padding-bottom:100px;}
+  html{-webkit-text-size-adjust:100%; text-size-adjust:100%;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text); overflow-x:hidden; width:100%;}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh;
+    padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));
+    padding-left:env(safe-area-inset-left, 0px); padding-right:env(safe-area-inset-right, 0px);}
   ::selection{background:var(--pull); color:#fff;}
   ::-webkit-scrollbar{height:6px;width:6px;}
   ::-webkit-scrollbar-thumb{background:#333;border-radius:10px;}
-  .wrap{max-width:860px; margin:0 auto; padding:0 20px;}
+  a,button,input,textarea{font-family:inherit;}
+  button{touch-action:manipulation;}
+  img,svg{max-width:100%;}
+  :focus-visible{outline:2px solid var(--posture); outline-offset:2px; border-radius:6px;}
+  .wrap{max-width:860px; margin:0 auto; padding:0 clamp(16px, 4vw, 28px); width:100%;}
+
+  @media(min-width:900px){
+    .wrap{max-width:1080px;}
+    .rings-card, .streak-card, .cal-card, .week-bar, .workout-card, .notes-card, .tip-card, .chart-card, .log-card, .ai-card{
+      padding-left:26px; padding-right:26px;}
+    .top-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:14px; align-items:start; margin-bottom:14px;}
+    .top-grid .rings-card, .top-grid .cal-card{margin-bottom:0;}
+    .side-col{display:flex; flex-direction:column; gap:14px;}
+    .side-col > *{margin-bottom:0 !important;}
+    .stat-grid{grid-template-columns:repeat(3,1fr);}
+    .log-grid{grid-template-columns:repeat(3,1fr);}
+    .result-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    h1.title{font-size:clamp(48px, 6vw, 68px);}
+  }
+  @media(min-width:1200px){
+    .wrap{max-width:1180px;}
+  }
+  @media(hover:hover) and (pointer:fine){
+    .wk-btn:hover, .cal-nav button:hover, .gear-btn:hover, .clock-btn:hover, .timer-fab:hover{border-color:var(--text-dim); filter:brightness(1.15);}
+    .day-chip:hover, .badge:hover, .metric-pill:hover, .preset-btn:hover{border-color:var(--text-dim);}
+    .ex-item:hover .ex-name{color:var(--text);}
+    .save-btn:hover, .settings-btn.primary:hover, .notes-save:hover, .settings-btn:hover{filter:brightness(1.08);}
+    .round-pill:hover{border-color:var(--text-dim);}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
 
   .backdrop{position:fixed; inset:0; z-index:-1; overflow:hidden;}
   .backdrop::before{content:''; position:absolute; top:-220px; left:50%; transform:translateX(-50%); width:900px; height:600px; border-radius:50%;
@@ -41,14 +75,19 @@
 
   nav{position:sticky; top:0; z-index:50; backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%);
     background:rgba(0,0,0,0.55); border-bottom:1px solid var(--border);}
-  .nav-inner{max-width:860px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between;}
+  .nav-inner{max-width:860px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
   .logo{font-family:'Inter Tight'; font-weight:800; font-size:17px; letter-spacing:-0.02em;}
   .logo span{background:linear-gradient(90deg,var(--pull),var(--posture)); -webkit-background-clip:text; background-clip:text; color:transparent;}
-  .nav-phase{font-size:12px; color:var(--text-dim); font-weight:600;}
+  .nav-inner{padding-left:calc(20px + env(safe-area-inset-left, 0px)); padding-right:calc(20px + env(safe-area-inset-right, 0px));}
+  .nav-right{display:flex; align-items:center; gap:10px; min-width:0;}
+  .nav-phase{font-size:12px; color:var(--text-dim); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:38vw;}
+  .gear-btn{width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--glass); color:var(--text-dim);
+    font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .gear-btn:active{transform:scale(0.9);}
 
   .hero{padding:44px 0 12px;}
   .eyebrow{font-size:11px; font-weight:700; letter-spacing:0.14em; color:var(--text-faint); text-transform:uppercase; margin-bottom:10px;}
-  h1.title{font-family:'Inter Tight'; font-weight:900; font-size:56px; line-height:0.95; letter-spacing:-0.03em; margin:0 0 14px;
+  h1.title{font-family:'Inter Tight'; font-weight:900; font-size:clamp(34px, 11vw, 56px); line-height:0.95; letter-spacing:-0.03em; margin:0 0 14px;
     background:linear-gradient(120deg,#fff 30%, var(--pull) 65%, var(--posture) 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
   .goals{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 28px;}
   .goal-pill{font-size:12.5px; font-weight:600; color:var(--text-dim); border:1px solid var(--border); padding:6px 12px; border-radius:100px; background:var(--glass);}
@@ -75,6 +114,23 @@
   .badge .b-emoji{font-size:24px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; width:52px; height:52px; display:flex; align-items:center; justify-content:center;}
   .badge .b-name{font-size:9px; text-align:center; color:var(--text-dim); font-weight:600; line-height:1.2;}
 
+  .cal-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 18px; margin-bottom:14px;}
+  .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .cal-head h3{margin:0; font-size:14px; font-weight:700;}
+  .cal-nav{display:flex; align-items:center; gap:10px;}
+  .cal-nav button{width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--glass); color:var(--text);
+    font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .cal-nav span{font-size:12.5px; font-weight:700; color:var(--text-dim); min-width:78px; text-align:center;}
+  .cal-dow{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px;}
+  .cal-dow div{font-size:10px; text-align:center; color:var(--text-faint); font-weight:700;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .cal-cell{aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600;
+    color:var(--text-faint); background:var(--bg-card-2); position:relative;}
+  .cal-cell.empty{background:transparent;}
+  .cal-cell.active{background:var(--pull); color:#fff;}
+  .cal-cell.today{box-shadow:0 0 0 1.5px var(--text) inset;}
+  .cal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:11.5px; color:var(--text-dim);}
+
   .week-bar{display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); border:1px solid var(--border);
     border-radius:var(--radius); padding:16px 18px; margin-bottom:14px;}
   .week-bar .wk-btn{width:34px; height:34px; border-radius:50%; border:1px solid var(--border); background:var(--glass); color:var(--text);
@@ -94,6 +150,15 @@
   .day-chip .d-type{font-size:9px; color:var(--text-faint); font-weight:600;}
   .day-chip.active{border-color:transparent; transform:translateY(-2px);}
   .day-chip.today{box-shadow:0 0 0 1px rgba(255,255,255,0.3) inset;}
+
+  .warmup-card{background:var(--bg-card-2); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-bottom:12px; cursor:pointer;}
+  .warmup-head{display:flex; align-items:center; justify-content:space-between;}
+  .warmup-head .wh-title{font-size:12.5px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px;}
+  .warmup-head .wh-chevron{color:var(--text-faint); font-size:12px; transition:transform .25s var(--ease);}
+  .warmup-head .wh-chevron.open{transform:rotate(180deg);}
+  .warmup-body{max-height:0; overflow:hidden; transition:max-height .3s var(--ease);}
+  .warmup-body.open{max-height:200px;}
+  .warmup-body ul{margin:10px 0 0; padding-left:18px; color:var(--text-dim); font-size:12.5px; line-height:1.9;}
 
   .workout-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px 22px; margin-bottom:16px;
     position:relative; overflow:hidden;}
@@ -130,6 +195,14 @@
   .round-pill{flex:1; min-width:52px; padding:12px 0; text-align:center; border-radius:14px; border:2px solid var(--border); font-weight:800;
     font-family:'Inter Tight'; font-size:14px; cursor:pointer; transition:all .2s var(--ease); color:var(--text-dim);}
   .round-pill.done{background:var(--accent-color, var(--pull)); border-color:var(--accent-color, var(--pull)); color:#fff;}
+
+  .notes-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:16px;}
+  .notes-card .nc-label{font-size:12px; font-weight:700; color:var(--text-dim); margin-bottom:10px; display:flex; align-items:center; gap:6px;}
+  .notes-card textarea{width:100%; min-height:64px; resize:vertical; background:var(--bg-card-2); border:1px solid var(--border); border-radius:12px;
+    padding:12px 14px; color:var(--text); font-family:inherit; font-size:13.5px; outline:none;}
+  .notes-card textarea:focus{border-color:var(--posture);}
+  .notes-save{margin-top:10px; padding:10px 16px; border:none; border-radius:10px; background:var(--bg-card-2); border:1px solid var(--border);
+    color:var(--text-dim); font-weight:700; font-size:12.5px; cursor:pointer;}
 
   .tip-card{background:linear-gradient(135deg, rgba(255,159,10,0.12), rgba(255,159,10,0.03)); border:1px solid rgba(255,159,10,0.25);
     border-radius:var(--radius); padding:18px 20px; margin-bottom:16px;}
@@ -203,7 +276,7 @@
   #loading p{color:var(--text-faint); font-size:13px;}
 
   /* floating timer */
-  .timer-fab{position:fixed; right:20px; bottom:24px; z-index:60; width:56px; height:56px; border-radius:50%;
+  .timer-fab{position:fixed; right:20px; bottom:calc(24px + env(safe-area-inset-bottom, 0px)); z-index:60; width:56px; height:56px; border-radius:50%;
     background:linear-gradient(135deg,var(--pull),var(--posture)); border:none; color:#fff; font-size:22px; cursor:pointer;
     box-shadow:0 8px 24px rgba(250,17,79,0.35); display:flex; align-items:center; justify-content:center; transition:transform .2s var(--ease);}
   .timer-fab:active{transform:scale(0.9);}
@@ -213,8 +286,9 @@
   .sheet-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:80; display:none; align-items:flex-end; justify-content:center;
     backdrop-filter:blur(4px);}
   .sheet-overlay.open{display:flex;}
-  .sheet{width:100%; max-width:480px; background:#151517; border-radius:26px 26px 0 0; padding:26px 22px 34px; border:1px solid var(--border);
-    border-bottom:none; transform:translateY(20px); animation:sheetup .3s var(--ease) forwards;}
+  .sheet{width:100%; max-width:480px; background:#151517; border-radius:26px 26px 0 0; padding:26px 22px calc(34px + env(safe-area-inset-bottom, 0px));
+    border:1px solid var(--border); border-bottom:none; transform:translateY(20px); animation:sheetup .3s var(--ease) forwards;
+    max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
   @keyframes sheetup{to{transform:translateY(0);}}
   .sheet-handle{width:36px; height:4px; background:var(--text-faint); border-radius:10px; margin:0 auto 18px;}
   .sheet h3{margin:0 0 6px; font-family:'Inter Tight'; font-size:18px; font-weight:800;}
@@ -231,12 +305,54 @@
   .close-x{position:absolute; top:20px; right:20px; width:30px; height:30px; border-radius:50%; background:var(--bg-card-2); border:1px solid var(--border);
     color:var(--text-dim); font-size:15px; cursor:pointer;}
 
+  .settings-row{display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border);}
+  .settings-row:last-of-type{border-bottom:none;}
+  .settings-row .sr-label{font-size:14px; font-weight:600;}
+  .settings-row .sr-sub{font-size:11.5px; color:var(--text-faint); margin-top:2px;}
+  .switch{width:44px; height:26px; border-radius:100px; background:var(--bg-card-2); border:1px solid var(--border); position:relative; cursor:pointer; flex:0 0 auto;}
+  .switch .knob{position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text-faint); transition:all .2s var(--ease);}
+  .switch.on{background:var(--pull); border-color:var(--pull);}
+  .switch.on .knob{left:20px; background:#fff;}
+  .settings-btn{width:100%; padding:13px; border-radius:12px; border:1px solid var(--border); background:var(--bg-card-2); color:var(--text);
+    font-weight:700; font-size:13.5px; cursor:pointer; margin-top:10px; font-family:inherit;}
+  .settings-btn.danger{color:var(--pull); border-color:rgba(250,17,79,0.35);}
+  .settings-btn.primary{background:linear-gradient(120deg,var(--pull),var(--posture)); border:none; color:#fff;}
+  #importFile{display:none;}
+  .confirm-box{display:none; margin-top:10px; background:rgba(250,17,79,0.08); border:1px solid rgba(250,17,79,0.3); border-radius:12px; padding:12px 14px;}
+  .confirm-box.open{display:block;}
+  .confirm-box p{font-size:12.5px; color:var(--text-dim); margin:0 0 10px;}
+  .confirm-row{display:flex; gap:8px;}
+  .confirm-row button{flex:1; padding:10px; border-radius:10px; border:none; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .confirm-cancel{background:var(--bg-card-2); color:var(--text-dim); border:1px solid var(--border) !important;}
+  .confirm-ok{background:var(--pull); color:#fff;}
+  .toast-wrap{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); z-index:90; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none;}
+  .toast{background:#151517; border:1px solid var(--border); border-radius:100px; padding:11px 18px; font-size:13px; font-weight:700; color:var(--text);
+    box-shadow:0 10px 30px rgba(0,0,0,0.4); opacity:0; transform:translateY(10px) scale(0.95); transition:all .3s var(--ease); white-space:nowrap;}
+  .toast.show{opacity:1; transform:translateY(0) scale(1);}
+  .toast.pr{background:linear-gradient(120deg,var(--pull),var(--posture)); color:#fff; border:none;}
+
   @media(max-width:520px){
-    h1.title{font-size:42px;}
     .stat-grid{grid-template-columns:1fr 1fr 1fr;}
     .log-grid{grid-template-columns:1fr 1fr;}
     .rings-row{gap:4px;}
     .ring-item{min-width:0;}
+    .toast{white-space:normal; text-align:center; max-width:88vw;}
+    .timer-display{font-size:52px;}
+    .goals{gap:6px;}
+    .goal-pill{font-size:11.5px; padding:5px 10px;}
+  }
+  @media(max-width:380px){
+    .wrap{padding:0 14px;}
+    .eyebrow{font-size:10px;}
+    .rings-card, .streak-card, .cal-card, .week-bar, .workout-card, .notes-card, .tip-card, .chart-card, .log-card, .ai-card{padding-left:16px; padding-right:16px;}
+    .wc-title{font-size:19px;}
+    .stat-card .s-val{font-size:16px;}
+    .day-chip{min-width:62px;}
+    .timer-fab{width:50px; height:50px; font-size:19px; right:14px;}
+  }
+  @media(max-width:340px){
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .log-grid{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -248,7 +364,10 @@
 <nav>
   <div class="nav-inner">
     <div class="logo">V-<span>ATHLETE</span></div>
-    <div class="nav-phase" id="navPhase">—</div>
+    <div class="nav-right">
+      <div class="nav-phase" id="navPhase">—</div>
+      <button class="gear-btn" id="settingsFab" title="Cài đặt">⚙️</button>
+    </div>
   </div>
 </nav>
 
@@ -269,19 +388,37 @@
     </div>
   </section>
 
-  <div class="rings-card">
-    <div class="rings-head"><h3>Dấu vân tay tuần này</h3><span id="ringsWeekLbl">Tuần 1</span></div>
-    <div class="rings-row" id="ringsRow"></div>
-  </div>
+  <div class="top-grid">
+    <div class="side-col">
+      <div class="rings-card">
+        <div class="rings-head"><h3>Dấu vân tay tuần này</h3><span id="ringsWeekLbl">Tuần 1</span></div>
+        <div class="rings-row" id="ringsRow"></div>
+      </div>
 
-  <div class="streak-card">
-    <div class="streak-flame">🔥</div>
-    <div>
-      <div class="streak-num" id="streakNum">0 ngày</div>
-      <div class="streak-lbl">Chuỗi ngày tập liên tiếp</div>
+      <div class="streak-card">
+        <div class="streak-flame">🔥</div>
+        <div>
+          <div class="streak-num" id="streakNum">0 ngày</div>
+          <div class="streak-lbl">Chuỗi ngày tập liên tiếp</div>
+        </div>
+      </div>
+      <div class="badge-row" id="badgeRow"></div>
+    </div>
+
+    <div class="cal-card">
+      <div class="cal-head">
+        <h3>Lịch hoạt động</h3>
+        <div class="cal-nav">
+          <button id="calPrev">‹</button>
+          <span id="calLabel">—</span>
+          <button id="calNext">›</button>
+        </div>
+      </div>
+      <div class="cal-dow"><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-foot"><span id="calCount">0 buổi tập tháng này</span><span id="calBestStreak">—</span></div>
     </div>
   </div>
-  <div class="badge-row" id="badgeRow"></div>
 
   <div class="week-bar">
     <button class="wk-btn" id="prevWeek">‹</button>
@@ -294,7 +431,29 @@
 
   <div class="day-scroll" id="dayScroll"></div>
 
+  <div class="warmup-card" id="warmupToggle">
+    <div class="warmup-head">
+      <div class="wh-title">🔥 Khởi động 5 phút <span style="color:var(--text-faint); font-weight:500;">— chạm để xem</span></div>
+      <div class="wh-chevron" id="warmupChevron">▾</div>
+    </div>
+    <div class="warmup-body" id="warmupBody">
+      <ul>
+        <li>Xoay khớp cổ tay, vai, hông, gối — 30 giây mỗi khớp</li>
+        <li>Jumping jack — 30 giây</li>
+        <li>Xoay tay vòng tròn (arm circles) — 20 lần mỗi chiều</li>
+        <li>Squat không tải chậm — 10 lần</li>
+        <li>Plank nhẹ — 20 giây để kích hoạt core</li>
+      </ul>
+    </div>
+  </div>
+
   <div class="workout-card" id="workoutCard"></div>
+
+  <div class="notes-card">
+    <div class="nc-label">📝 Ghi chú buổi tập hôm nay</div>
+    <textarea id="dayNoteInput" placeholder="Cảm giác thế nào? Có chỗ nào đau/mỏi không? Ghi lại để theo dõi..."></textarea>
+    <button class="notes-save" id="saveNote">Lưu ghi chú</button>
+  </div>
 
   <div class="tip-card">
     <div class="tip-h">Progressive Overload</div>
@@ -323,7 +482,7 @@
 
   <div class="sec-head">
     <h2>Theo dõi tiến bộ</h2>
-    <p>Ghi lại số đo mỗi 2 tuần để thấy rõ sự thay đổi</p>
+    <p>Ghi lại số đo mỗi 2 tuần để thấy rõ sự thay đổi — kỷ lục cá nhân sẽ được tự động phát hiện</p>
   </div>
   <div class="log-card">
     <div class="log-grid">
@@ -402,6 +561,44 @@
     <p id="infoBody">—</p>
   </div>
 </div>
+
+<!-- settings sheet -->
+<div class="sheet-overlay" id="settingsOverlay">
+  <div class="sheet">
+    <button class="close-x" id="settingsClose">✕</button>
+    <div class="sheet-handle"></div>
+    <h3>Cài đặt</h3>
+    <p>Quản lý âm thanh, sao lưu và dữ liệu của bạn.</p>
+
+    <div class="settings-row">
+      <div><div class="sr-label">Âm thanh hẹn giờ</div><div class="sr-sub">Tiếng bíp khi đồng hồ đếm ngược kết thúc</div></div>
+      <div class="switch on" id="soundSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div class="settings-row" style="display:block;">
+      <div class="sr-label" style="margin-bottom:2px;">Sao lưu dữ liệu</div>
+      <div class="sr-sub" style="margin-bottom:10px;">Xuất toàn bộ tiến độ ra một tệp để lưu giữ hoặc chuyển máy</div>
+      <button class="settings-btn primary" id="exportBtn">⬇️ Xuất dữ liệu (JSON)</button>
+      <button class="settings-btn" id="importBtn">⬆️ Nhập dữ liệu từ tệp</button>
+      <input type="file" id="importFile" accept="application/json">
+    </div>
+
+    <div class="settings-row" style="display:block; border-bottom:none;">
+      <div class="sr-label" style="margin-bottom:2px;">Đặt lại</div>
+      <div class="sr-sub" style="margin-bottom:10px;">Xoá toàn bộ tiến độ, số đo và ghi chú đã lưu</div>
+      <button class="settings-btn danger" id="resetBtn">🗑️ Đặt lại toàn bộ dữ liệu</button>
+      <div class="confirm-box" id="resetConfirm">
+        <p>Hành động này không thể hoàn tác. Bạn chắc chắn muốn xoá hết dữ liệu?</p>
+        <div class="confirm-row">
+          <button class="confirm-cancel" id="resetCancel">Huỷ</button>
+          <button class="confirm-ok" id="resetOk">Xoá hết</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script>
 (function(){
@@ -549,8 +746,10 @@
   function dayData(week, dayIdx){ return PHASES[phaseIndexForWeek(week)].days[dayIdx]; }
   function unitCount(dd){ if(!dd) return 0; return dd.mode==='circuit' ? dd.rounds : dd.items.length; }
 
-  let state = { week:1, day:(new Date().getDay()+6)%7, weekChecks:{}, logs:[], stats:{activityDates:[], completedSlots:[]} };
+  let state = { week:1, day:(new Date().getDay()+6)%7, weekChecks:{}, logs:[], stats:{activityDates:[], completedSlots:[]},
+    notes:{}, prs:{pullup:0, pushup:0, plank:0}, settings:{sound:true} };
   let currentMetric = 'weight';
+  let calMonth = new Date(); calMonth.setDate(1);
 
   async function safeGetVersioned(key){
     try{ const r = await window.storage.get(key, false); return r; }catch(e){ return null; }
@@ -585,6 +784,28 @@
   }
   async function saveStats(){ try{ await window.storage.set('stats', JSON.stringify(state.stats), false); }catch(e){} }
 
+  async function loadNotes(){
+    const r = await safeGetVersioned('notes');
+    if(r && r.value){ try{ state.notes = JSON.parse(r.value); }catch(e){ state.notes={}; } } else { state.notes={}; }
+  }
+  async function saveNotes(){ try{ await window.storage.set('notes', JSON.stringify(state.notes), false); }catch(e){} }
+
+  async function loadPRs(){
+    const r = await safeGetVersioned('prs');
+    if(r && r.value){ try{ state.prs = JSON.parse(r.value); }catch(e){} }
+    if(!state.prs) state.prs = {pullup:0, pushup:0, plank:0};
+    ['pullup','pushup','plank'].forEach(k=>{ if(typeof state.prs[k]!=='number') state.prs[k]=0; });
+  }
+  async function savePRs(){ try{ await window.storage.set('prs', JSON.stringify(state.prs), false); }catch(e){} }
+
+  async function loadSettings(){
+    const r = await safeGetVersioned('settings');
+    if(r && r.value){ try{ state.settings = JSON.parse(r.value); }catch(e){} }
+    if(!state.settings) state.settings = {sound:true};
+    if(typeof state.settings.sound!=='boolean') state.settings.sound = true;
+  }
+  async function saveSettings(){ try{ await window.storage.set('settings', JSON.stringify(state.settings), false); }catch(e){} }
+
   function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
   function computeStreak(){
     const set = new Set(state.stats.activityDates);
@@ -594,6 +815,17 @@
       if(set.has(s)){ streak++; d.setDate(d.getDate()-1); } else break;
     }
     return streak;
+  }
+  function computeBestStreak(){
+    const dates = Array.from(new Set(state.stats.activityDates)).sort();
+    if(!dates.length) return 0;
+    let best=1, cur=1;
+    for(let i=1;i<dates.length;i++){
+      const prev = new Date(dates[i-1]); const now = new Date(dates[i]);
+      const diff = Math.round((now-prev)/86400000);
+      if(diff===1){ cur++; best=Math.max(best,cur); } else if(diff>1){ cur=1; }
+    }
+    return best;
   }
 
   const BADGES = [
@@ -605,6 +837,20 @@
     {emoji:'💪', name:'Push-up 40+', cond:()=>state.logs.some(l=>parseFloat(l.pushup)>=40)},
     {emoji:'🧘', name:'Plank 3 phút', cond:()=>state.logs.some(l=>parseFloat(l.plank)>=180)},
   ];
+
+  // ---------- toast ----------
+  function showToast(text, isPR){
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = 'toast' + (isPR ? ' pr' : '');
+    el.textContent = text;
+    wrap.appendChild(el);
+    requestAnimationFrame(()=>{ el.classList.add('show'); });
+    setTimeout(()=>{
+      el.classList.remove('show');
+      setTimeout(()=>{ el.remove(); }, 350);
+    }, isPR ? 3200 : 2200);
+  }
 
   function ringSVG(pct, color){
     const r=16, c=2*Math.PI*r; const off=c*(1-Math.min(1,pct));
@@ -639,6 +885,37 @@
       return `<div class="badge ${unlocked?'unlocked':''}"><div class="b-emoji">${b.emoji}</div><div class="b-name">${b.name}</div></div>`;
     }).join('');
   }
+
+  // ---------- calendar heatmap ----------
+  function renderCalendar(){
+    const y = calMonth.getFullYear(), m = calMonth.getMonth();
+    document.getElementById('calLabel').textContent = calMonth.toLocaleDateString('vi-VN', {month:'long', year:'numeric'});
+    const first = new Date(y, m, 1);
+    const startOffset = (first.getDay()+6)%7; // Monday=0
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const set = new Set(state.stats.activityDates);
+    const today = todayStr();
+    let html='';
+    for(let i=0;i<startOffset;i++) html += `<div class="cal-cell empty"></div>`;
+    let count=0;
+    for(let d=1; d<=daysInMonth; d++){
+      const s = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const active = set.has(s); if(active) count++;
+      const isToday = s===today;
+      html += `<div class="cal-cell ${active?'active':''} ${isToday?'today':''}">${d}</div>`;
+    }
+    document.getElementById('calGrid').innerHTML = html;
+    document.getElementById('calCount').textContent = count + ' buổi tập tháng này';
+    document.getElementById('calBestStreak').textContent = 'Chuỗi dài nhất: ' + computeBestStreak() + ' ngày';
+    const now = new Date();
+    document.getElementById('calNext').disabled = (y===now.getFullYear() && m===now.getMonth());
+  }
+  document.getElementById('calPrev').addEventListener('click', ()=>{ calMonth.setMonth(calMonth.getMonth()-1); renderCalendar(); });
+  document.getElementById('calNext').addEventListener('click', ()=>{
+    const now = new Date();
+    if(calMonth.getFullYear()===now.getFullYear() && calMonth.getMonth()===now.getMonth()) return;
+    calMonth.setMonth(calMonth.getMonth()+1); renderCalendar();
+  });
 
   function renderWeekBar(){
     document.getElementById('wkNum').textContent = `Tuần ${state.week} / 12`;
@@ -683,6 +960,7 @@
       if(!state.stats.completedSlots.includes(slotId)) state.stats.completedSlots.push(slotId);
     }
     await saveStats();
+    renderCalendar();
   }
 
   function renderWorkout(){
@@ -755,6 +1033,27 @@
     document.getElementById('tipText').textContent = txt;
   }
 
+  // ---------- day notes ----------
+  function currentNoteKey(){ return state.week+'-'+state.day; }
+  function renderDayNote(){
+    const key = currentNoteKey();
+    document.getElementById('dayNoteInput').value = state.notes[key] || '';
+  }
+  document.getElementById('saveNote').addEventListener('click', async ()=>{
+    const key = currentNoteKey();
+    const val = document.getElementById('dayNoteInput').value.trim();
+    if(val) state.notes[key] = val; else delete state.notes[key];
+    await saveNotes();
+    const btn = document.getElementById('saveNote'); const old = btn.textContent;
+    btn.textContent = 'Đã lưu ✓'; setTimeout(()=>{ btn.textContent = old; }, 1200);
+  });
+
+  // ---------- warm-up collapse ----------
+  document.getElementById('warmupToggle').addEventListener('click', ()=>{
+    document.getElementById('warmupBody').classList.toggle('open');
+    document.getElementById('warmupChevron').classList.toggle('open');
+  });
+
   function renderLogHistory(){
     const el = document.getElementById('logHistory');
     if(!state.logs.length){ el.innerHTML = `<div class="empty-log">Chưa có số đo nào được ghi lại.</div>`; return; }
@@ -806,8 +1105,8 @@
   }
 
   function render(){
-    renderRings(); renderStreakBadges(); renderWeekBar(); renderDayScroll();
-    renderWorkout(); renderTip(); renderLogHistory(); renderMetricPills(); renderChart();
+    renderRings(); renderStreakBadges(); renderCalendar(); renderWeekBar(); renderDayScroll();
+    renderWorkout(); renderDayNote(); renderTip(); renderLogHistory(); renderMetricPills(); renderChart();
   }
 
   // ---------- info modal ----------
@@ -836,6 +1135,7 @@
   }
   function updateDisplay(){ document.getElementById('timerDisplay').textContent = fmt(timerRemaining); }
   function beep(){
+    if(!state.settings.sound) return;
     try{
       const ctx = new (window.AudioContext||window.webkitAudioContext)();
       const o = ctx.createOscillator(); const g = ctx.createGain();
@@ -866,7 +1166,7 @@
   document.getElementById('timerReset').addEventListener('click', ()=>setTimerSeconds(timerSeconds));
   renderPresets(); updateDisplay();
 
-  // ---------- log form ----------
+  // ---------- log form + PR detection ----------
   document.getElementById('saveLog').addEventListener('click', async ()=>{
     const entry = {
       date: new Date().toLocaleDateString('vi-VN'),
@@ -876,10 +1176,19 @@
       plank: document.getElementById('fPlank').value,
     };
     state.logs.push(entry); await saveLogs();
+
+    const prHits = [];
+    const pu = parseFloat(entry.pullup), ps = parseFloat(entry.pushup), pl = parseFloat(entry.plank);
+    if(!isNaN(pu) && pu > state.prs.pullup){ state.prs.pullup = pu; prHits.push('Pull-up '+pu+' lần'); }
+    if(!isNaN(ps) && ps > state.prs.pushup){ state.prs.pushup = ps; prHits.push('Push-up '+ps+' lần'); }
+    if(!isNaN(pl) && pl > state.prs.plank){ state.prs.plank = pl; prHits.push('Plank '+pl+'s'); }
+    if(prHits.length){ await savePRs(); showToast('🎉 Kỷ lục mới! ' + prHits.join(' · '), true); }
+
     renderLogHistory(); renderChart(); renderStreakBadges();
     ['fWeight','fVai','fNguc','fEo','fPullup','fPushup','fPlank'].forEach(id=>document.getElementById(id).value='');
     const btn = document.getElementById('saveLog'); const old = btn.textContent;
     btn.textContent = 'Đã lưu ✓'; setTimeout(()=>{ btn.textContent = old; }, 1400);
+    if(!prHits.length) showToast('Đã lưu số đo hôm nay');
   });
 
   // ---------- week nav ----------
@@ -929,9 +1238,90 @@
     el.addEventListener('click', ()=>{ document.getElementById('aiInput').value = el.dataset.q; askCoach(el.dataset.q); });
   });
 
+  // ---------- settings sheet ----------
+  document.getElementById('settingsFab').addEventListener('click', ()=>document.getElementById('settingsOverlay').classList.add('open'));
+  document.getElementById('settingsClose').addEventListener('click', ()=>document.getElementById('settingsOverlay').classList.remove('open'));
+  document.getElementById('settingsOverlay').addEventListener('click', (e)=>{ if(e.target.id==='settingsOverlay') e.currentTarget.classList.remove('open'); });
+
+  function renderSoundSwitch(){
+    document.getElementById('soundSwitch').classList.toggle('on', !!state.settings.sound);
+  }
+  document.getElementById('soundSwitch').addEventListener('click', async ()=>{
+    state.settings.sound = !state.settings.sound; renderSoundSwitch(); await saveSettings();
+  });
+
+  const ALL_KNOWN_KEYS = ['prefs','logs','stats','notes','prs','settings'];
+  async function collectAllKeys(){
+    const keys = new Set(ALL_KNOWN_KEYS);
+    for(let w=1; w<=12; w++) keys.add('checkweek'+w);
+    try{
+      const listed = await window.storage.list('', false);
+      if(listed && listed.keys){ listed.keys.forEach(k=>keys.add(k)); }
+    }catch(e){}
+    return Array.from(keys);
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', async ()=>{
+    const keys = await collectAllKeys();
+    const bundle = {};
+    for(const k of keys){
+      const r = await safeGetVersioned(k);
+      if(r && typeof r.value !== 'undefined') bundle[k] = r.value;
+    }
+    const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString(), data:bundle}, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'v-athlete-backup-'+todayStr()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Đã xuất tệp sao lưu');
+  });
+
+  document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev)=>{
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        const data = parsed.data || parsed;
+        for(const k of Object.keys(data)){
+          await window.storage.set(k, data[k], false);
+        }
+        await loadPrefs(); await loadWeekChecks(); await loadLogs(); await loadStats(); await loadNotes(); await loadPRs(); await loadSettings();
+        renderSoundSwitch();
+        render();
+        showToast('Đã nhập dữ liệu thành công');
+        document.getElementById('settingsOverlay').classList.remove('open');
+      }catch(err){
+        showToast('Tệp không hợp lệ, thử lại nhé');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', ()=>document.getElementById('resetConfirm').classList.add('open'));
+  document.getElementById('resetCancel').addEventListener('click', ()=>document.getElementById('resetConfirm').classList.remove('open'));
+  document.getElementById('resetOk').addEventListener('click', async ()=>{
+    const keys = await collectAllKeys();
+    for(const k of keys){
+      try{ const r = await safeGetVersioned(k); if(r) await window.storage.delete(k, false); }catch(e){}
+    }
+    state = { week:1, day:(new Date().getDay()+6)%7, weekChecks:{}, logs:[], stats:{activityDates:[], completedSlots:[]},
+      notes:{}, prs:{pullup:0, pushup:0, plank:0}, settings:{sound:true} };
+    await loadWeekChecks();
+    document.getElementById('resetConfirm').classList.remove('open');
+    document.getElementById('settingsOverlay').classList.remove('open');
+    renderSoundSwitch();
+    render();
+    showToast('Đã đặt lại toàn bộ dữ liệu');
+  });
+
   // ---------- init ----------
   (async function init(){
-    await loadPrefs(); await loadWeekChecks(); await loadLogs(); await loadStats();
+    await loadPrefs(); await loadWeekChecks(); await loadLogs(); await loadStats(); await loadNotes(); await loadPRs(); await loadSettings();
+    renderSoundSwitch();
     render();
     const loading = document.getElementById('loading');
     loading.style.opacity='0'; setTimeout(()=>{ loading.style.display='none'; }, 400);
