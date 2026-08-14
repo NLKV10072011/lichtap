@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>V-ATHLETE — Chương trình 12 tuần</title>
+<meta name="description" content="Chương trình tập luyện 12 tuần xây dáng chữ V — theo dõi tiến độ, số đo, chuỗi ngày tập và nhắc nhở.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="V-ATHLETE">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inter+Tight:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000000;
+    --bg-card:#151517;
+    --bg-card-2:#1c1c1f;
+    --glass:rgba(255,255,255,0.05);
+    --border:rgba(255,255,255,0.09);
+    --text:#f5f5f7;
+    --text-dim:#98989d;
+    --text-faint:#636366;
+    --pull:#fa114f;
+    --push:#92e82a;
+    --legs:#0ad7ff;
+    --posture:#bf5afe;
+    --athletic:#ff9f0a;
+    --fullbody:#ffd60a;
+    --rest:#48484a;
+    --radius:20px;
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%; text-size-adjust:100%;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text); overflow-x:hidden; width:100%;}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100vh;
+    padding-bottom:calc(100px + env(safe-area-inset-bottom, 0px));
+    padding-left:env(safe-area-inset-left, 0px); padding-right:env(safe-area-inset-right, 0px);}
+  ::selection{background:var(--pull); color:#fff;}
+  ::-webkit-scrollbar{height:6px;width:6px;}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:10px;}
+  a,button,input,textarea{font-family:inherit;}
+  button{touch-action:manipulation;}
+  img,svg{max-width:100%;}
+  :focus-visible{outline:2px solid var(--posture); outline-offset:2px; border-radius:6px;}
+  .wrap{max-width:860px; margin:0 auto; padding:0 clamp(16px, 4vw, 28px); width:100%;}
+
+  @media(min-width:900px){
+    .wrap{max-width:1080px;}
+    .rings-card, .streak-card, .cal-card, .week-bar, .workout-card, .notes-card, .tip-card, .chart-card, .log-card, .ai-card{
+      padding-left:26px; padding-right:26px;}
+    .top-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:14px; align-items:start; margin-bottom:14px;}
+    .top-grid .rings-card, .top-grid .cal-card{margin-bottom:0;}
+    .side-col{display:flex; flex-direction:column; gap:14px;}
+    .side-col > *{margin-bottom:0 !important;}
+    .stat-grid{grid-template-columns:repeat(3,1fr);}
+    .log-grid{grid-template-columns:repeat(3,1fr);}
+    .result-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+    h1.title{font-size:clamp(48px, 6vw, 68px);}
+  }
+  @media(min-width:1200px){
+    .wrap{max-width:1180px;}
+  }
+  @media(hover:hover) and (pointer:fine){
+    .wk-btn:hover, .cal-nav button:hover, .gear-btn:hover, .clock-btn:hover, .timer-fab:hover{border-color:var(--text-dim); filter:brightness(1.15);}
+    .day-chip:hover, .badge:hover, .metric-pill:hover, .preset-btn:hover{border-color:var(--text-dim);}
+    .ex-item:hover .ex-name{color:var(--text);}
+    .save-btn:hover, .settings-btn.primary:hover, .notes-save:hover, .settings-btn:hover{filter:brightness(1.08);}
+    .round-pill:hover{border-color:var(--text-dim);}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  .backdrop{position:fixed; inset:0; z-index:-1; overflow:hidden;}
+  .backdrop::before{content:''; position:absolute; top:-220px; left:50%; transform:translateX(-50%); width:900px; height:600px; border-radius:50%;
+    background:radial-gradient(circle, rgba(250,17,79,0.18), rgba(191,90,254,0.10) 40%, transparent 70%); filter:blur(40px);}
+
+  nav{position:sticky; top:0; z-index:50; backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%);
+    background:rgba(0,0,0,0.55); border-bottom:1px solid var(--border);}
+  .nav-inner{max-width:860px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .logo{font-family:'Inter Tight'; font-weight:800; font-size:17px; letter-spacing:-0.02em;}
+  .logo span{background:linear-gradient(90deg,var(--pull),var(--posture)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .nav-inner{padding-left:calc(20px + env(safe-area-inset-left, 0px)); padding-right:calc(20px + env(safe-area-inset-right, 0px));}
+  .nav-right{display:flex; align-items:center; gap:10px; min-width:0;}
+  .nav-phase{font-size:12px; color:var(--text-dim); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:38vw;}
+  .gear-btn{width:30px; height:30px; border-radius:50%; border:1px solid var(--border); background:var(--glass); color:var(--text-dim);
+    font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .gear-btn:active{transform:scale(0.9);}
+  .install-btn{display:none; align-items:center; gap:6px; border:1px solid rgba(191,90,254,0.4); background:rgba(191,90,254,0.12);
+    color:var(--text); font-size:11.5px; font-weight:700; padding:7px 12px; border-radius:100px; cursor:pointer; flex:0 0 auto; white-space:nowrap;}
+  .install-btn.show{display:flex;}
+  .install-btn:active{transform:scale(0.94);}
+
+  .water-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:14px;}
+  .water-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .water-head h3{margin:0; font-size:14px; font-weight:700;}
+  .water-head span{font-size:12px; color:var(--text-faint);}
+  .water-cups{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+  .water-cup{width:34px; height:34px; border-radius:10px; border:2px solid var(--border); background:var(--bg-card-2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:15px; transition:all .2s var(--ease); flex:0 0 auto;}
+  .water-cup.filled{background:rgba(10,215,255,0.16); border-color:var(--legs);}
+  .water-bar-track{height:8px; border-radius:100px; background:var(--bg-card-2); overflow:hidden; margin-bottom:8px;}
+  .water-bar-fill{height:100%; background:linear-gradient(90deg,var(--legs),var(--posture)); border-radius:100px; transition:width .3s var(--ease);}
+  .water-foot{display:flex; justify-content:space-between; align-items:center;}
+  .water-foot .w-amt{font-family:'Inter Tight'; font-weight:800; font-size:15px;}
+  .water-foot .w-btns{display:flex; gap:6px;}
+  .water-foot button{width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:var(--bg-card-2); color:var(--text);
+    font-size:14px; cursor:pointer;}
+
+  .hero{padding:44px 0 12px;}
+  .eyebrow{font-size:11px; font-weight:700; letter-spacing:0.14em; color:var(--text-faint); text-transform:uppercase; margin-bottom:10px;}
+  h1.title{font-family:'Inter Tight'; font-weight:900; font-size:clamp(34px, 11vw, 56px); line-height:0.95; letter-spacing:-0.03em; margin:0 0 14px;
+    background:linear-gradient(120deg,#fff 30%, var(--pull) 65%, var(--posture) 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .goals{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 28px;}
+  .goal-pill{font-size:12.5px; font-weight:600; color:var(--text-dim); border:1px solid var(--border); padding:6px 12px; border-radius:100px; background:var(--glass);}
+
+  .rings-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:22px 20px; margin-bottom:14px;}
+  .rings-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px;}
+  .rings-head h3{margin:0; font-size:14px; font-weight:700;}
+  .rings-head span{font-size:12px; color:var(--text-faint);}
+  .rings-row{display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;}
+  .ring-item{display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; min-width:64px;}
+  .ring-item svg circle{transition:stroke-dashoffset 0.8s var(--ease);}
+  .ring-item .pct{font-size:12px; font-weight:700; font-family:'Inter Tight';}
+  .ring-item .lbl{font-size:9.5px; color:var(--text-faint); font-weight:600; text-transform:uppercase; letter-spacing:0.04em;}
+
+  .streak-card{display:flex; align-items:center; gap:16px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:18px 20px; margin-bottom:14px;}
+  .streak-flame{font-size:30px; flex:0 0 auto;}
+  .streak-num{font-family:'Inter Tight'; font-weight:900; font-size:22px;}
+  .streak-lbl{font-size:11.5px; color:var(--text-dim); font-weight:600;}
+  .badge-row{display:flex; gap:10px; overflow-x:auto; padding:2px 0; margin-bottom:14px; scrollbar-width:none;}
+  .badge-row::-webkit-scrollbar{display:none;}
+  .badge{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:4px; width:70px; opacity:0.28; filter:grayscale(1);}
+  .badge.unlocked{opacity:1; filter:none;}
+  .badge .b-emoji{font-size:24px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; width:52px; height:52px; display:flex; align-items:center; justify-content:center;}
+  .badge .b-name{font-size:9px; text-align:center; color:var(--text-dim); font-weight:600; line-height:1.2;}
+
+  .cal-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 18px; margin-bottom:14px;}
+  .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .cal-head h3{margin:0; font-size:14px; font-weight:700;}
+  .cal-nav{display:flex; align-items:center; gap:10px;}
+  .cal-nav button{width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--glass); color:var(--text);
+    font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+  .cal-nav span{font-size:12.5px; font-weight:700; color:var(--text-dim); min-width:78px; text-align:center;}
+  .cal-dow{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px;}
+  .cal-dow div{font-size:10px; text-align:center; color:var(--text-faint); font-weight:700;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .cal-cell{aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600;
+    color:var(--text-faint); background:var(--bg-card-2); position:relative;}
+  .cal-cell.empty{background:transparent;}
+  .cal-cell.active{background:var(--pull); color:#fff;}
+  .cal-cell.today{box-shadow:0 0 0 1.5px var(--text) inset;}
+  .cal-foot{display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:11.5px; color:var(--text-dim);}
+
+  .week-bar{display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); border:1px solid var(--border);
+    border-radius:var(--radius); padding:16px 18px; margin-bottom:14px;}
+  .week-bar .wk-btn{width:34px; height:34px; border-radius:50%; border:1px solid var(--border); background:var(--glass); color:var(--text);
+    font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s var(--ease);}
+  .week-bar .wk-btn:active{transform:scale(0.9);}
+  .week-bar .wk-btn:disabled{opacity:0.25; cursor:default;}
+  .wk-center{text-align:center;}
+  .wk-center .wk-num{font-family:'Inter Tight'; font-weight:900; font-size:22px; letter-spacing:-0.02em;}
+  .wk-center .wk-phase{font-size:11.5px; color:var(--text-dim); font-weight:600; margin-top:2px;}
+
+  .day-scroll{display:flex; gap:8px; overflow-x:auto; padding:2px 0 20px; scrollbar-width:none;}
+  .day-scroll::-webkit-scrollbar{display:none;}
+  .day-chip{flex:0 0 auto; min-width:72px; padding:10px 6px; border-radius:16px; border:1px solid var(--border); background:var(--bg-card);
+    cursor:pointer; text-align:center; transition:all .25s var(--ease);}
+  .day-chip .d-short{font-size:11px; font-weight:700; color:var(--text-dim);}
+  .day-chip .d-dot{width:7px; height:7px; border-radius:50%; margin:6px auto;}
+  .day-chip .d-type{font-size:9px; color:var(--text-faint); font-weight:600;}
+  .day-chip.active{border-color:transparent; transform:translateY(-2px);}
+  .day-chip.today{box-shadow:0 0 0 1px rgba(255,255,255,0.3) inset;}
+
+  .warmup-card{background:var(--bg-card-2); border:1px solid var(--border); border-radius:16px; padding:14px 16px; margin-bottom:12px; cursor:pointer;}
+  .warmup-head{display:flex; align-items:center; justify-content:space-between;}
+  .warmup-head .wh-title{font-size:12.5px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px;}
+  .warmup-head .wh-chevron{color:var(--text-faint); font-size:12px; transition:transform .25s var(--ease);}
+  .warmup-head .wh-chevron.open{transform:rotate(180deg);}
+  .warmup-body{max-height:0; overflow:hidden; transition:max-height .3s var(--ease);}
+  .warmup-body.open{max-height:200px;}
+  .warmup-body ul{margin:10px 0 0; padding-left:18px; color:var(--text-dim); font-size:12.5px; line-height:1.9;}
+
+  .workout-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:24px 22px; margin-bottom:16px;
+    position:relative; overflow:hidden;}
+  .workout-card::before{content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--accent-color, var(--pull));}
+  .wc-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
+  .wc-title{font-family:'Inter Tight'; font-weight:800; font-size:22px; letter-spacing:-0.01em;}
+  .wc-progress{font-size:12.5px; font-weight:700; color:var(--accent-color, var(--pull));}
+  .wc-note{font-size:12.5px; color:var(--text-dim); margin-bottom:18px;}
+
+  .rest-day{text-align:center; padding:30px 0 10px;}
+  .rest-day .r-emoji{font-size:36px; margin-bottom:10px;}
+  .rest-day p{color:var(--text-dim); font-size:14px; max-width:340px; margin:0 auto;}
+
+  .ex-list{display:flex; flex-direction:column; gap:2px;}
+  .ex-item{display:flex; align-items:center; gap:12px; padding:13px 4px; border-bottom:1px solid var(--border); cursor:pointer; user-select:none;}
+  .ex-item:last-child{border-bottom:none;}
+  .checkbox{width:24px; height:24px; border-radius:50%; border:2px solid var(--text-faint); flex:0 0 auto; display:flex; align-items:center;
+    justify-content:center; transition:all .25s var(--ease);}
+  .checkbox svg{opacity:0; transform:scale(0.5); transition:all .25s var(--ease);}
+  .ex-item.done .checkbox{background:var(--accent-color, var(--pull)); border-color:var(--accent-color, var(--pull));}
+  .ex-item.done .checkbox svg{opacity:1; transform:scale(1);}
+  .ex-item.done .ex-name{color:var(--text-dim); text-decoration:line-through; text-decoration-color:var(--text-faint);}
+  .ex-name{font-size:15px; font-weight:600; flex:1; border-bottom:1px dotted transparent;}
+  .ex-name:active{opacity:0.6;}
+  .ex-scheme{font-size:13px; color:var(--text-dim); font-weight:600; font-variant-numeric:tabular-nums;}
+  .clock-btn{width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--bg-card-2); display:flex;
+    align-items:center; justify-content:center; font-size:12px; flex:0 0 auto; cursor:pointer;}
+
+  .circuit-desc{background:var(--bg-card-2); border-radius:14px; padding:14px 16px; margin-bottom:16px;}
+  .circuit-desc .cd-label{font-size:10.5px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;}
+  .circuit-desc ul{margin:0; padding-left:18px; color:var(--text-dim); font-size:13.5px; line-height:1.9;}
+  .circuit-desc ul strong{color:var(--text); font-weight:600; cursor:pointer;}
+  .rounds-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .round-pill{flex:1; min-width:52px; padding:12px 0; text-align:center; border-radius:14px; border:2px solid var(--border); font-weight:800;
+    font-family:'Inter Tight'; font-size:14px; cursor:pointer; transition:all .2s var(--ease); color:var(--text-dim);
+    display:flex; align-items:center; justify-content:center;}
+  .round-pill.done{background:var(--accent-color, var(--pull)); border-color:var(--accent-color, var(--pull)); color:#fff;}
+  .round-pill svg{display:block;}
+  .circuit-rounds{display:flex; flex-direction:column; gap:14px;}
+  .round-group{background:var(--bg-card-2); border-radius:14px; padding:10px 12px 4px; border:1px solid transparent; transition:border-color .2s;}
+  .round-group.done{border-color:var(--accent-color, var(--pull));}
+  .round-group-title{font-size:11px; font-weight:800; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em; padding:2px 4px 6px;}
+  .round-group.done .round-group-title{color:var(--accent-color, var(--pull));}
+  .round-group .ex-item{padding:10px 4px;}
+  .round-group .ex-item:last-child{border-bottom:none;}
+
+  .notes-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:16px;}
+  .notes-card .nc-label{font-size:12px; font-weight:700; color:var(--text-dim); margin-bottom:10px; display:flex; align-items:center; gap:6px;}
+  .notes-card textarea{width:100%; min-height:64px; resize:vertical; background:var(--bg-card-2); border:1px solid var(--border); border-radius:12px;
+    padding:12px 14px; color:var(--text); font-family:inherit; font-size:13.5px; outline:none;}
+  .notes-card textarea:focus{border-color:var(--posture);}
+  .notes-save{margin-top:10px; padding:10px 16px; border:none; border-radius:10px; background:var(--bg-card-2); border:1px solid var(--border);
+    color:var(--text-dim); font-weight:700; font-size:12.5px; cursor:pointer;}
+
+  .tip-card{background:linear-gradient(135deg, rgba(255,159,10,0.12), rgba(255,159,10,0.03)); border:1px solid rgba(255,159,10,0.25);
+    border-radius:var(--radius); padding:18px 20px; margin-bottom:16px;}
+  .tip-card .tip-h{font-size:12px; font-weight:700; color:var(--athletic); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;}
+  .tip-card p{margin:0; font-size:14px; color:var(--text); line-height:1.5;}
+  .tip-card .tip-sub{color:var(--text-dim); font-size:12.5px; margin-top:6px;}
+
+  .sec-head{margin:36px 0 14px;}
+  .sec-head h2{font-family:'Inter Tight'; font-weight:800; font-size:20px; letter-spacing:-0.01em; margin:0;}
+  .sec-head p{margin:4px 0 0; font-size:13px; color:var(--text-dim);}
+
+  .stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .stat-card{background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:16px 14px; text-align:center;}
+  .stat-card .s-val{font-family:'Inter Tight'; font-weight:800; font-size:19px;}
+  .stat-card .s-lbl{font-size:11px; color:var(--text-dim); margin-top:4px; font-weight:600;}
+
+  .chart-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:14px;}
+  .metric-pills{display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; scrollbar-width:none;}
+  .metric-pills::-webkit-scrollbar{display:none;}
+  .metric-pill{flex:0 0 auto; font-size:12px; font-weight:700; padding:7px 13px; border-radius:100px; border:1px solid var(--border);
+    background:var(--bg-card-2); color:var(--text-dim); cursor:pointer; transition:all .2s var(--ease);}
+  .metric-pill.active{color:#000;}
+
+  .log-card{background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:22px;}
+  .log-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; min-width:0;}
+  .field{display:flex; flex-direction:column; gap:6px; min-width:0;}
+  .field label{font-size:11.5px; color:var(--text-dim); font-weight:600;}
+  .field input{background:var(--bg-card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text);
+    width:100%; min-width:0; max-width:100%;
+    font-size:14px; font-family:inherit; outline:none; transition:border-color .2s;}
+  .field input:focus{border-color:var(--posture);}
+  .save-btn{width:100%; padding:14px; border:none; border-radius:14px; margin-top:4px; background:linear-gradient(120deg,var(--pull),var(--posture));
+    color:#fff; font-weight:700; font-size:14.5px; cursor:pointer; transition:transform .15s var(--ease); font-family:inherit;}
+  .save-btn:active{transform:scale(0.98);}
+  .photo-reminder{display:flex; gap:10px; align-items:center; margin-top:14px; padding:12px 14px; background:var(--bg-card-2); border-radius:12px;
+    font-size:12.5px; color:var(--text-dim);}
+  .log-history{margin-top:18px; display:flex; flex-direction:column; gap:10px;}
+  .log-entry{display:flex; justify-content:space-between; align-items:center; background:var(--bg-card-2); border-radius:12px; padding:12px 14px; font-size:13px;}
+  .log-entry .le-date{font-weight:700; color:var(--text);}
+  .log-entry .le-stats{color:var(--text-dim); font-size:12px; text-align:right;}
+  .empty-log{color:var(--text-faint); font-size:13px; text-align:center; padding:14px 0;}
+
+  .result-grid{display:flex; flex-direction:column; gap:10px;}
+  .result-row{display:flex; align-items:center; gap:14px; background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:14px 16px;}
+  .result-row .r-icon{font-size:20px; width:28px; text-align:center;}
+  .result-row .r-text{font-size:13.5px; color:var(--text-dim); line-height:1.4;}
+  .result-row .r-text b{color:var(--text); font-weight:700;}
+
+  .ai-card{background:linear-gradient(160deg, rgba(191,90,254,0.10), rgba(10,215,255,0.05)); border:1px solid rgba(191,90,254,0.28);
+    border-radius:var(--radius); padding:22px;}
+  .ai-intro{font-size:13px; color:var(--text-dim); margin-bottom:14px; line-height:1.5;}
+  .ai-input-row{display:flex; gap:8px; min-width:0;}
+  .ai-input-row textarea{flex:1; min-width:0; resize:none; height:48px; background:var(--bg-card-2); border:1px solid var(--border); border-radius:14px;
+    padding:12px 14px; color:var(--text); font-family:inherit; font-size:14px; outline:none;}
+  .ai-input-row textarea:focus{border-color:var(--posture);}
+  .ai-send{width:48px; height:48px; flex:0 0 auto; border:none; border-radius:14px; background:linear-gradient(120deg,var(--posture),var(--legs));
+    color:#fff; font-size:18px; cursor:pointer;}
+  .ai-suggest{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+  .ai-chip{font-size:11.5px; padding:6px 11px; border-radius:100px; border:1px solid var(--border); color:var(--text-dim); background:var(--glass); cursor:pointer;}
+  .ai-answer{margin-top:16px; background:var(--bg-card-2); border-radius:14px; padding:16px; font-size:13.5px; line-height:1.7; color:var(--text);
+    white-space:pre-wrap; display:none;}
+  .ai-loading{display:none; align-items:center; gap:8px; margin-top:14px; font-size:12.5px; color:var(--text-dim);}
+  .dot-flash{width:6px; height:6px; border-radius:50%; background:var(--posture); animation:flash 1s infinite;}
+  @keyframes flash{0%,100%{opacity:0.2;} 50%{opacity:1;}}
+
+  footer{text-align:center; padding:40px 0 10px; color:var(--text-faint); font-size:11.5px;}
+
+  #loading{position:fixed; inset:0; background:#000; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+    z-index:999; transition:opacity .4s var(--ease);}
+  .spinner{width:26px; height:26px; border-radius:50%; border:3px solid #333; border-top-color:var(--pull); animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #loading p{color:var(--text-faint); font-size:13px;}
+
+  /* floating timer */
+  .timer-fab{position:fixed; right:20px; bottom:calc(24px + env(safe-area-inset-bottom, 0px)); z-index:60; width:56px; height:56px; border-radius:50%;
+    background:linear-gradient(135deg,var(--pull),var(--posture)); border:none; color:#fff; font-size:22px; cursor:pointer;
+    box-shadow:0 8px 24px rgba(250,17,79,0.35); display:flex; align-items:center; justify-content:center; transition:transform .2s var(--ease);}
+  .timer-fab:active{transform:scale(0.9);}
+  .timer-fab .tfab-badge{position:absolute; top:-2px; right:-2px; background:var(--push); color:#000; font-size:9px; font-weight:800;
+    border-radius:50%; width:18px; height:18px; display:none; align-items:center; justify-content:center;}
+
+  .sheet-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:80; display:none; align-items:flex-end; justify-content:center;
+    backdrop-filter:blur(4px);}
+  .sheet-overlay.open{display:flex;}
+  .sheet{width:100%; max-width:480px; background:#151517; border-radius:26px 26px 0 0; padding:26px 22px calc(34px + env(safe-area-inset-bottom, 0px));
+    border:1px solid var(--border); border-bottom:none; transform:translateY(20px); animation:sheetup .3s var(--ease) forwards;
+    max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  @keyframes sheetup{to{transform:translateY(0);}}
+  .sheet-handle{width:36px; height:4px; background:var(--text-faint); border-radius:10px; margin:0 auto 18px;}
+  .sheet h3{margin:0 0 6px; font-family:'Inter Tight'; font-size:18px; font-weight:800;}
+  .sheet p{margin:0 0 18px; color:var(--text-dim); font-size:13.5px; line-height:1.6;}
+  .timer-display{font-family:'Inter Tight'; font-weight:900; font-size:64px; text-align:center; letter-spacing:-0.02em; margin:10px 0 20px;
+    font-variant-numeric:tabular-nums;}
+  .timer-presets{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:20px;}
+  .preset-btn{padding:8px 14px; border-radius:100px; border:1px solid var(--border); background:var(--bg-card-2); color:var(--text-dim);
+    font-size:12.5px; font-weight:700; cursor:pointer;}
+  .timer-controls{display:flex; gap:10px;}
+  .timer-controls button{flex:1; padding:14px; border:none; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit;}
+  .tc-start{background:linear-gradient(120deg,var(--pull),var(--posture)); color:#fff;}
+  .tc-reset{background:var(--bg-card-2); color:var(--text-dim); border:1px solid var(--border) !important;}
+  .close-x{position:absolute; top:20px; right:20px; width:30px; height:30px; border-radius:50%; background:var(--bg-card-2); border:1px solid var(--border);
+    color:var(--text-dim); font-size:15px; cursor:pointer;}
+
+  .settings-row{display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border);}
+  .settings-row:last-of-type{border-bottom:none;}
+  .settings-row .sr-label{font-size:14px; font-weight:600;}
+  .settings-row .sr-sub{font-size:11.5px; color:var(--text-faint); margin-top:2px;}
+  .switch{width:44px; height:26px; border-radius:100px; background:var(--bg-card-2); border:1px solid var(--border); position:relative; cursor:pointer; flex:0 0 auto;}
+  .switch .knob{position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--text-faint); transition:all .2s var(--ease);}
+  .switch.on{background:var(--pull); border-color:var(--pull);}
+  .switch.on .knob{left:20px; background:#fff;}
+  .settings-btn{width:100%; padding:13px; border-radius:12px; border:1px solid var(--border); background:var(--bg-card-2); color:var(--text);
+    font-weight:700; font-size:13.5px; cursor:pointer; margin-top:10px; font-family:inherit;}
+  .settings-btn.danger{color:var(--pull); border-color:rgba(250,17,79,0.35);}
+  .settings-btn.primary{background:linear-gradient(120deg,var(--pull),var(--posture)); border:none; color:#fff;}
+  #importFile{display:none;}
+  .confirm-box{display:none; margin-top:10px; background:rgba(250,17,79,0.08); border:1px solid rgba(250,17,79,0.3); border-radius:12px; padding:12px 14px;}
+  .confirm-box.open{display:block;}
+  .confirm-box p{font-size:12.5px; color:var(--text-dim); margin:0 0 10px;}
+  .confirm-row{display:flex; gap:8px;}
+  .confirm-row button{flex:1; padding:10px; border-radius:10px; border:none; font-size:12.5px; font-weight:700; cursor:pointer; font-family:inherit;}
+  .confirm-cancel{background:var(--bg-card-2); color:var(--text-dim); border:1px solid var(--border) !important;}
+  .confirm-ok{background:var(--pull); color:#fff;}
+  .toast-wrap{position:fixed; left:50%; bottom:96px; transform:translateX(-50%); z-index:90; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none;}
+  .toast{background:#151517; border:1px solid var(--border); border-radius:100px; padding:11px 18px; font-size:13px; font-weight:700; color:var(--text);
+    box-shadow:0 10px 30px rgba(0,0,0,0.4); opacity:0; transform:translateY(10px) scale(0.95); transition:all .3s var(--ease); white-space:nowrap;}
+  .toast.show{opacity:1; transform:translateY(0) scale(1);}
+  .toast.pr{background:linear-gradient(120deg,var(--pull),var(--posture)); color:#fff; border:none;}
+
+  @media(max-width:520px){
+    .stat-grid{grid-template-columns:1fr 1fr 1fr;}
+    .log-grid{grid-template-columns:1fr 1fr;}
+    .rings-row{gap:4px;}
+    .ring-item{min-width:0;}
+    .toast{white-space:normal; text-align:center; max-width:88vw;}
+    .timer-display{font-size:52px;}
+    .goals{gap:6px;}
+    .goal-pill{font-size:11.5px; padding:5px 10px;}
+  }
+  @media(max-width:380px){
+    .wrap{padding:0 14px;}
+    .eyebrow{font-size:10px;}
+    .rings-card, .streak-card, .cal-card, .week-bar, .workout-card, .notes-card, .tip-card, .chart-card, .log-card, .ai-card{padding-left:16px; padding-right:16px;}
+    .wc-title{font-size:19px;}
+    .stat-card .s-val{font-size:16px;}
+    .day-chip{min-width:62px;}
+    .timer-fab{width:50px; height:50px; font-size:19px; right:14px;}
+  }
+  @media(max-width:340px){
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .log-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><p>Đang tải dữ liệu của bạn…</p></div>
+<div class="backdrop"></div>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo">V-<span>ATHLETE</span></div>
+    <div class="nav-right">
+      <div class="nav-phase" id="navPhase">—</div>
+      <button class="install-btn" id="installBtn">⬇️ Cài đặt</button>
+      <button class="gear-btn" id="settingsFab" title="Cài đặt">⚙️</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="eyebrow">Chương trình 12 tuần</div>
+    <h1 class="title">Xây dáng<br>chữ V</h1>
+    <div class="goals">
+      <span class="goal-pill">Vai rộng</span>
+      <span class="goal-pill">Lưng chữ V</span>
+      <span class="goal-pill">Ngực đầy</span>
+      <span class="goal-pill">Tay to</span>
+      <span class="goal-pill">Cơ bụng rõ</span>
+      <span class="goal-pill">Sức mạnh</span>
+      <span class="goal-pill">Thể lực</span>
+      <span class="goal-pill">Tư thế đẹp</span>
+    </div>
+  </section>
+
+  <div class="top-grid">
+    <div class="side-col">
+      <div class="rings-card">
+        <div class="rings-head"><h3>Dấu vân tay tuần này</h3><span id="ringsWeekLbl">Tuần 1</span></div>
+        <div class="rings-row" id="ringsRow"></div>
+      </div>
+
+      <div class="streak-card">
+        <div class="streak-flame">🔥</div>
+        <div>
+          <div class="streak-num" id="streakNum">0 ngày</div>
+          <div class="streak-lbl">Chuỗi ngày tập liên tiếp</div>
+        </div>
+      </div>
+      <div class="badge-row" id="badgeRow"></div>
+
+      <div class="water-card">
+        <div class="water-head"><h3>💧 Nước uống hôm nay</h3><span id="waterGoalLbl">0 / 8 cốc</span></div>
+        <div class="water-cups" id="waterCups"></div>
+        <div class="water-bar-track"><div class="water-bar-fill" id="waterBarFill" style="width:0%"></div></div>
+        <div class="water-foot">
+          <div class="w-amt" id="waterAmt">0 ml</div>
+          <div class="w-btns">
+            <button id="waterMinus">−</button>
+            <button id="waterPlus">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cal-card">
+      <div class="cal-head">
+        <h3>Lịch hoạt động</h3>
+        <div class="cal-nav">
+          <button id="calPrev">‹</button>
+          <span id="calLabel">—</span>
+          <button id="calNext">›</button>
+        </div>
+      </div>
+      <div class="cal-dow"><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-foot"><span id="calCount">0 buổi tập tháng này</span><span id="calBestStreak">—</span></div>
+    </div>
+  </div>
+
+  <div class="week-bar">
+    <button class="wk-btn" id="prevWeek">‹</button>
+    <div class="wk-center">
+      <div class="wk-num" id="wkNum">Tuần 1 / 12</div>
+      <div class="wk-phase" id="wkPhase">Giai đoạn 1 · Xây nền</div>
+    </div>
+    <button class="wk-btn" id="nextWeek">›</button>
+  </div>
+
+  <div class="day-scroll" id="dayScroll"></div>
+
+  <div class="warmup-card" id="warmupToggle">
+    <div class="warmup-head">
+      <div class="wh-title">🔥 Khởi động 5 phút <span style="color:var(--text-faint); font-weight:500;">— chạm để xem</span></div>
+      <div class="wh-chevron" id="warmupChevron">▾</div>
+    </div>
+    <div class="warmup-body" id="warmupBody">
+      <ul>
+        <li>Xoay khớp cổ tay, vai, hông, gối — 30 giây mỗi khớp</li>
+        <li>Jumping jack — 30 giây</li>
+        <li>Xoay tay vòng tròn (arm circles) — 20 lần mỗi chiều</li>
+        <li>Squat không tải chậm — 10 lần</li>
+        <li>Plank nhẹ — 20 giây để kích hoạt core</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="workout-card" id="workoutCard"></div>
+
+  <div class="notes-card">
+    <div class="nc-label">📝 Ghi chú buổi tập hôm nay</div>
+    <textarea id="dayNoteInput" placeholder="Cảm giác thế nào? Có chỗ nào đau/mỏi không? Ghi lại để theo dõi..."></textarea>
+    <button class="notes-save" id="saveNote">Lưu ghi chú</button>
+  </div>
+
+  <div class="tip-card">
+    <div class="tip-h">Progressive Overload</div>
+    <p id="tipText">—</p>
+    <div class="tip-sub">Chỉ thay đổi một yếu tố mỗi tuần.</div>
+  </div>
+
+  <div class="sec-head">
+    <h2>Dinh dưỡng &amp; hồi phục</h2>
+    <p>Tham chiếu hằng ngày cho mức cân nặng ~49kg</p>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="s-val">80–100g</div><div class="s-lbl">Protein / ngày</div></div>
+    <div class="stat-card"><div class="s-val">2–2.5L</div><div class="s-lbl">Nước / ngày</div></div>
+    <div class="stat-card"><div class="s-val">8–9h</div><div class="s-lbl">Giấc ngủ / đêm</div></div>
+  </div>
+
+  <div class="sec-head">
+    <h2>Biểu đồ tiến bộ</h2>
+    <p>Theo dõi xu hướng qua các lần đo</p>
+  </div>
+  <div class="chart-card">
+    <div class="metric-pills" id="metricPills"></div>
+    <div id="chartArea"></div>
+  </div>
+
+  <div class="sec-head">
+    <h2>Theo dõi tiến bộ</h2>
+    <p>Ghi lại số đo mỗi 2 tuần để thấy rõ sự thay đổi — kỷ lục cá nhân sẽ được tự động phát hiện</p>
+  </div>
+  <div class="log-card">
+    <div class="log-grid">
+      <div class="field"><label>Cân nặng (kg)</label><input type="number" step="0.1" id="fWeight" placeholder="49"></div>
+      <div class="field"><label>Vòng vai (cm)</label><input type="number" step="0.1" id="fVai" placeholder="—"></div>
+      <div class="field"><label>Vòng ngực (cm)</label><input type="number" step="0.1" id="fNguc" placeholder="—"></div>
+      <div class="field"><label>Vòng eo (cm)</label><input type="number" step="0.1" id="fEo" placeholder="—"></div>
+      <div class="field"><label>Pull-up tối đa</label><input type="number" id="fPullup" placeholder="—"></div>
+      <div class="field"><label>Push-up tối đa</label><input type="number" id="fPushup" placeholder="—"></div>
+      <div class="field" style="grid-column:1/-1;"><label>Plank (giây)</label><input type="number" id="fPlank" placeholder="—"></div>
+    </div>
+    <button class="save-btn" id="saveLog">Lưu số đo hôm nay</button>
+    <div class="photo-reminder">📸 Đừng quên chụp ảnh trước – sau: mặt trước, bên hông, lưng.</div>
+    <div class="log-history" id="logHistory"></div>
+  </div>
+
+  <div class="sec-head">
+    <h2>Kỳ vọng sau 12 tuần</h2>
+    <p>Nếu tập đều và ăn ngủ hợp lý</p>
+  </div>
+  <div class="result-grid">
+    <div class="result-row"><div class="r-icon">🧗</div><div class="r-text"><b>Pull-up:</b> 10–15 lần</div></div>
+    <div class="result-row"><div class="r-icon">💪</div><div class="r-text"><b>Push-up:</b> 40–60 lần liên tục</div></div>
+    <div class="result-row"><div class="r-icon">🧘</div><div class="r-text"><b>Plank:</b> 3–4 phút</div></div>
+    <div class="result-row"><div class="r-icon">🦅</div><div class="r-text">Vai và lưng phát triển rõ, bắt đầu có <b>dáng chữ V</b></div></div>
+    <div class="result-row"><div class="r-icon">🔥</div><div class="r-text">Ngực và tay <b>săn chắc hơn</b></div></div>
+    <div class="result-row"><div class="r-icon">📐</div><div class="r-text">Cơ bụng bắt đầu hiện rõ nếu tỷ lệ mỡ cơ thể đủ thấp</div></div>
+    <div class="result-row"><div class="r-icon">🧍</div><div class="r-text">Tư thế đứng thẳng hơn, sức mạnh toàn thân tăng đáng kể</div></div>
+  </div>
+
+  <div class="sec-head">
+    <h2>Hỏi AI Coach</h2>
+    <p>Trả lời dựa trên đúng tuần, ngày tập và số đo gần nhất của bạn</p>
+  </div>
+  <div class="ai-card">
+    <div class="ai-intro">Hỏi về kỹ thuật, cách điều chỉnh khi đau mỏi, hoặc xin lời khuyên dựa trên tiến độ hiện tại của bạn.</div>
+    <div class="ai-input-row">
+      <textarea id="aiInput" placeholder="Ví dụ: Vai tôi hơi đau khi Pike Push-up, nên điều chỉnh thế nào?"></textarea>
+      <button class="ai-send" id="aiSend">➤</button>
+    </div>
+    <div class="ai-suggest">
+      <span class="ai-chip" data-q="Tuần này tôi nên tập trung vào điều gì nhất?">Tuần này tập gì trọng tâm?</span>
+      <span class="ai-chip" data-q="Dựa trên số đo gần nhất của tôi, tôi đang tiến bộ tốt không?">Tôi đang tiến bộ tốt không?</span>
+      <span class="ai-chip" data-q="Tôi bị đau cổ tay khi chống đẩy, phải làm sao?">Đau cổ tay khi chống đẩy?</span>
+    </div>
+    <div class="ai-loading" id="aiLoading"><div class="dot-flash"></div> AI Coach đang trả lời…</div>
+    <div class="ai-answer" id="aiAnswer"></div>
+  </div>
+
+  <footer>V-ATHLETE · 12 tuần · Pull → Push → Legs → Posture → Athletic → Full Body → Nghỉ</footer>
+</div>
+
+<!-- floating rest/exercise timer -->
+<button class="timer-fab" id="timerFab">⏱<span class="tfab-badge" id="tfabBadge"></span></button>
+<div class="sheet-overlay" id="timerOverlay">
+  <div class="sheet">
+    <button class="close-x" id="timerClose">✕</button>
+    <div class="sheet-handle"></div>
+    <h3>Đồng hồ nghỉ / bài tập</h3>
+    <p>Chọn thời gian có sẵn hoặc chạm biểu tượng đồng hồ cạnh một bài tập có thời gian.</p>
+    <div class="timer-display" id="timerDisplay">00:60</div>
+    <div class="timer-presets" id="timerPresets"></div>
+    <div class="timer-controls">
+      <button class="tc-reset" id="timerReset">Đặt lại</button>
+      <button class="tc-start" id="timerStart">Bắt đầu</button>
+    </div>
+  </div>
+</div>
+
+<!-- exercise info modal -->
+<div class="sheet-overlay" id="infoOverlay">
+  <div class="sheet">
+    <button class="close-x" id="infoClose">✕</button>
+    <div class="sheet-handle"></div>
+    <h3 id="infoTitle">—</h3>
+    <p id="infoBody">—</p>
+  </div>
+</div>
+
+<!-- settings sheet -->
+<div class="sheet-overlay" id="settingsOverlay">
+  <div class="sheet">
+    <button class="close-x" id="settingsClose">✕</button>
+    <div class="sheet-handle"></div>
+    <h3>Cài đặt</h3>
+    <p>Quản lý âm thanh, sao lưu và dữ liệu của bạn.</p>
+
+    <div class="settings-row">
+      <div><div class="sr-label">Âm thanh hẹn giờ</div><div class="sr-sub">Tiếng bíp khi đồng hồ đếm ngược kết thúc</div></div>
+      <div class="switch on" id="soundSwitch"><div class="knob"></div></div>
+    </div>
+
+    <div class="settings-row" style="display:block;">
+      <div class="sr-label" style="margin-bottom:2px;">Nhắc nhở tập luyện</div>
+      <div class="sr-sub" style="margin-bottom:10px;">Thông báo hằng ngày khi mở ứng dụng (cần cho phép thông báo, chỉ hoạt động khi ứng dụng đang mở hoặc chạy nền trên thiết bị hỗ trợ)</div>
+      <div class="settings-row" style="padding:0 0 10px;">
+        <div class="sr-label" style="font-size:13px;">Bật nhắc nhở</div>
+        <div class="switch" id="reminderSwitch"><div class="knob"></div></div>
+      </div>
+      <div class="field" style="max-width:140px;">
+        <label>Giờ nhắc mỗi ngày</label>
+        <input type="time" id="reminderTime" value="18:00" style="background:var(--bg-card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-size:14px; font-family:inherit; outline:none;">
+      </div>
+    </div>
+
+    <div class="settings-row" style="display:block;">
+      <div class="sr-label" style="margin-bottom:2px;">Sao lưu dữ liệu</div>
+      <div class="sr-sub" style="margin-bottom:10px;">Xuất toàn bộ tiến độ ra một tệp để lưu giữ hoặc chuyển máy</div>
+      <button class="settings-btn primary" id="exportBtn">⬇️ Xuất dữ liệu (JSON)</button>
+      <button class="settings-btn" id="importBtn">⬆️ Nhập dữ liệu từ tệp</button>
+      <input type="file" id="importFile" accept="application/json">
+    </div>
+
+    <div class="settings-row" style="display:block; border-bottom:none;">
+      <div class="sr-label" style="margin-bottom:2px;">Đặt lại</div>
+      <div class="sr-sub" style="margin-bottom:10px;">Xoá toàn bộ tiến độ, số đo và ghi chú đã lưu</div>
+      <button class="settings-btn danger" id="resetBtn">🗑️ Đặt lại toàn bộ dữ liệu</button>
+      <div class="confirm-box" id="resetConfirm">
+        <p>Hành động này không thể hoàn tác. Bạn chắc chắn muốn xoá hết dữ liệu?</p>
+        <div class="confirm-row">
+          <button class="confirm-cancel" id="resetCancel">Huỷ</button>
+          <button class="confirm-ok" id="resetOk">Xoá hết</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+(function(){
+  const DAY_SHORT = ['T2','T3','T4','T5','T6','T7','CN'];
+  const DAY_TYPES = ['pull','push','legs','posture','athletic','fullbody','rest'];
+  const TYPE_LABEL = {pull:'Pull', push:'Push', legs:'Legs+Speed', posture:'Posture', athletic:'Athletic', fullbody:'Full Body', rest:'Nghỉ'};
+  const TYPE_COLOR = {pull:'var(--pull)', push:'var(--push)', legs:'var(--legs)', posture:'var(--posture)', athletic:'var(--athletic)', fullbody:'var(--fullbody)', rest:'var(--rest)'};
+
+  function L(mode, items, extra){ return Object.assign({mode, items}, extra||{}); }
+  const REST = null;
+
+  const PHASES = [
+    { name:'Xây nền', range:'Tuần 1–4',
+      days:[
+        L('list', [
+          {name:'Dead Hang', scheme:'3×30s'}, {name:'Scapular Pull-up', scheme:'3×10'}, {name:'Negative Pull-up', scheme:'4×5'},
+          {name:'Australian Row', scheme:'3×10'}, {name:'Superman', scheme:'3×15'}, {name:'Hanging Knee Raise', scheme:'3×10'},
+        ]),
+        L('list', [
+          {name:'Incline Push-up', scheme:'3×12'}, {name:'Push-up', scheme:'3×10'}, {name:'Pike Push-up', scheme:'3×8'},
+          {name:'Chair Dip', scheme:'3×10'}, {name:'Diamond Push-up', scheme:'2×8'}, {name:'Plank', scheme:'3×45s'},
+        ]),
+        L('list', [
+          {name:'Squat', scheme:'4×15'}, {name:'Bulgarian Split Squat', scheme:'3×10'}, {name:'Glute Bridge', scheme:'3×15'},
+          {name:'Calf Raise', scheme:'4×20'}, {name:'Jump Squat', scheme:'3×10'}, {name:'Sprint', scheme:'5×40m'},
+        ]),
+        L('list', [
+          {name:'Dead Hang', scheme:'3×45s'}, {name:'Negative Pull-up', scheme:'4×5'}, {name:'Wall Slide', scheme:'3×15'},
+          {name:'Reverse Snow Angel', scheme:'3×15'}, {name:'Y Raise', scheme:'3×12'}, {name:'Hollow Hold', scheme:'3×30s'},
+        ]),
+        L('circuit', [
+          {name:'Burpee', scheme:'×10'}, {name:'Mountain Climber', scheme:'×20'}, {name:'High Knees', scheme:'30s'},
+          {name:'Bear Crawl', scheme:'20m'}, {name:'Jump Rope', scheme:'1 phút'},
+        ], {rounds:4}),
+        L('circuit', [
+          {name:'Push-up', scheme:'×10'}, {name:'Pull-up âm', scheme:'×5'}, {name:'Squat', scheme:'×15'},
+          {name:'Dip', scheme:'×10'}, {name:'Plank', scheme:'45s'},
+        ], {rounds:5}),
+        REST,
+      ]
+    },
+    { name:'Tăng cơ', range:'Tuần 5–8',
+      days:[
+        L('list', [
+          {name:'Pull-up', scheme:'5×tối đa'}, {name:'Chin-up', scheme:'4×tối đa'},
+          {name:'Australian Row', scheme:'4×12'}, {name:'Hanging Leg Raise', scheme:'4×12'},
+        ]),
+        L('list', [
+          {name:'Push-up', scheme:'4×20'}, {name:'Diamond Push-up', scheme:'4×12'},
+          {name:'Pike Push-up', scheme:'4×10'}, {name:'Dip', scheme:'4×12'},
+        ]),
+        L('list', [
+          {name:'Squat', scheme:'5×20'}, {name:'Jump Squat', scheme:'4×15'}, {name:'Bulgarian Split Squat', scheme:'4×12'},
+          {name:'Calf Raise', scheme:'5×25'}, {name:'Sprint', scheme:'6×60m'},
+        ]),
+        L('list', [
+          {name:'Wide Pull-up', scheme:'5×tối đa'}, {name:'Commando Pull-up', scheme:'3×8'},
+          {name:'Scapular Pull-up', scheme:'3×15'}, {name:'Dead Hang', scheme:'1 phút'},
+        ], {titleOverride:'Back'}),
+        L('circuit', [
+          {name:'Burpee', scheme:'×12'}, {name:'Jump Squat', scheme:'×15'}, {name:'Bear Crawl', scheme:'—'}, {name:'Sprint', scheme:'—'},
+        ], {rounds:5}),
+        L('circuit', [
+          {name:'Push-up', scheme:'×10'}, {name:'Pull-up âm', scheme:'×5'}, {name:'Squat', scheme:'×15'},
+          {name:'Dip', scheme:'×10'}, {name:'Plank', scheme:'45s'},
+        ], {rounds:6}),
+        REST,
+      ]
+    },
+    { name:'Xây dáng chữ V', range:'Tuần 9–12',
+      days:[
+        L('list', [
+          {name:'Wide Pull-up', scheme:'5×tối đa'}, {name:'Chin-up', scheme:'4×tối đa'},
+          {name:'Archer Pull-up (hỗ trợ)', scheme:'3×5'}, {name:'Hanging Leg Raise', scheme:'4×15'},
+        ]),
+        L('list', [
+          {name:'Decline Push-up', scheme:'4×15'}, {name:'Diamond Push-up', scheme:'4×15'},
+          {name:'Pike Push-up', scheme:'4×12'}, {name:'Pseudo Planche Push-up', scheme:'3×8'},
+        ]),
+        L('list', [
+          {name:'Pistol Squat Progression', scheme:'3×5/chân'}, {name:'Jump Squat', scheme:'4×15'},
+          {name:'Bulgarian Split Squat', scheme:'4×15'}, {name:'Sprint', scheme:'6×80m'},
+        ]),
+        L('list', [
+          {name:'Pike Push-up', scheme:'4×12'}, {name:'Handstand Hold (tựa tường)', scheme:'4×20s'},
+          {name:'Wall Slide', scheme:'3×15'}, {name:'Scapular Pull-up', scheme:'3×15'},
+        ], {titleOverride:'Vai'}),
+        L('list', [
+          {name:'Sprint', scheme:'xen kẽ'}, {name:'Agility Drill', scheme:'xen kẽ'},
+          {name:'Burpee', scheme:'xen kẽ'}, {name:'Jump Rope', scheme:'xen kẽ'},
+        ], {titleOverride:'Athletic · HIIT 30 phút', note:'Xen kẽ các bài trong 30 phút liên tục.'}),
+        L('list', [
+          {name:'EMOM phút 1–5', scheme:'5·10·15'}, {name:'EMOM phút 6–10', scheme:'5·10·15'}, {name:'EMOM phút 11–15', scheme:'5·10·15'},
+          {name:'EMOM phút 16–20', scheme:'5·10·15'}, {name:'EMOM phút 21–25', scheme:'5·10·15'}, {name:'EMOM phút 26–30', scheme:'5·10·15'},
+        ], {titleOverride:'Full Body · EMOM 30 phút', note:'Mỗi phút: 5 Pull-up · 10 Push-up · 15 Squat. Điều chỉnh số lần nếu chưa đủ sức.'}),
+        REST,
+      ]
+    }
+  ];
+
+  const EXERCISE_INFO = {
+    'Dead Hang':'Treo người thẳng tay trên xà, vai hơi rút xuống, giữ hông thẳng. Thở đều, tránh đung đưa.',
+    'Scapular Pull-up':'Treo xà tay thẳng, chỉ nhún hai vai lên xuống (không gập khuỷu tay) để kích hoạt cơ lưng dưới bả vai.',
+    'Negative Pull-up':'Nhảy hoặc bước lên để cằm qua xà, sau đó hạ người xuống thật chậm (3–5 giây).',
+    'Australian Row':'Nằm dưới xà thấp hoặc bàn, kéo ngực lên chạm xà, giữ thân người thẳng như tấm ván.',
+    'Superman':'Nằm sấp, nâng đồng thời tay và chân khỏi sàn, giữ 1–2 giây rồi hạ xuống.',
+    'Hanging Knee Raise':'Treo xà, co gối lên ngang hông, tránh đung đưa người khi thực hiện.',
+    'Incline Push-up':'Chống đẩy với tay đặt cao hơn chân (ghế, bậc thềm) để giảm tải, giữ thân thẳng.',
+    'Push-up':'Tay rộng bằng vai, hạ ngực gần chạm sàn, giữ core chặt, không võng lưng.',
+    'Pike Push-up':'Đẩy hông lên cao tạo hình chữ V ngược, hạ đỉnh đầu về phía sàn để tập trung vai.',
+    'Chair Dip':'Tay đặt sau trên ghế, hạ hông xuống bằng cách gập khuỷu tay, giữ khuỷu tay hướng ra sau.',
+    'Diamond Push-up':'Hai tay chụm hình kim cương dưới ngực, chống đẩy để tập trung cơ tay sau.',
+    'Plank':'Chống cẳng tay và mũi chân, giữ thân người thành một đường thẳng từ đầu đến gót.',
+    'Squat':'Chân rộng bằng vai, hạ hông xuống như ngồi ghế, giữ lưng thẳng, đầu gối theo hướng mũi chân.',
+    'Bulgarian Split Squat':'Một chân sau đặt lên ghế, chân trước hạ gối xuống gần 90 độ, giữ thân thẳng.',
+    'Glute Bridge':'Nằm ngửa, co gối, đẩy hông lên cao siết mông ở đỉnh động tác.',
+    'Calf Raise':'Đứng thẳng, nhón gót lên cao hết mức rồi hạ chậm xuống.',
+    'Jump Squat':'Squat xuống rồi bật nhảy thẳng lên, tiếp đất nhẹ nhàng bằng cả bàn chân.',
+    'Sprint':'Chạy nhanh hết tốc lực trong cự ly ngắn, khởi động kỹ trước khi thực hiện.',
+    'Wall Slide':'Lưng áp tường, tay chữ W trượt lên thành chữ Y dọc theo tường, giữ tay chạm tường suốt.',
+    'Reverse Snow Angel':'Nằm sấp, đưa tay từ hông vòng lên qua đầu như vẽ hình thiên thần tuyết, siết lưng trên.',
+    'Y Raise':'Đứng cúi người nhẹ, nâng hai tay tạo hình chữ Y, siết cơ vai sau và lưng giữa.',
+    'Hollow Hold':'Nằm ngửa, nâng vai và chân khỏi sàn tạo hình lòng chảo, lưng dưới ép sát sàn.',
+    'Burpee':'Squat → chống đẩy → bật nhảy lên cao, thực hiện liên tục với nhịp độ ổn định.',
+    'Mountain Climber':'Ở tư thế plank, luân phiên kéo gối về phía ngực nhanh và có kiểm soát.',
+    'High Knees':'Chạy tại chỗ, nâng gối cao ngang hông, giữ nhịp nhanh.',
+    'Bear Crawl':'Bò bằng tay và mũi chân, đầu gối không chạm sàn, di chuyển đối bên tay-chân.',
+    'Jump Rope':'Nhảy dây nhịp đều, tiếp đất nhẹ bằng mũi chân, khuỷu tay gần thân người.',
+    'Pull-up âm':'Giống Negative Pull-up: bật lên qua xà rồi hạ người thật chậm và có kiểm soát.',
+    'Dip':'Chống trên hai thanh song song, hạ người xuống bằng cách gập khuỷu tay, giữ thân hơi ngả trước.',
+    'Pull-up':'Treo xà, kéo cằm qua xà bằng lực lưng và tay, hạ xuống có kiểm soát, không đung đưa.',
+    'Chin-up':'Giống Pull-up nhưng lòng bàn tay hướng vào người, tập trung nhiều hơn vào tay trước.',
+    'Hanging Leg Raise':'Treo xà, nâng thẳng chân lên ngang hông hoặc cao hơn, tránh đung đưa.',
+    'Wide Pull-up':'Nắm xà rộng hơn vai, kéo người lên để mở rộng lưng xô (lats).',
+    'Commando Pull-up':'Nắm xà một tay trước một tay sau, kéo người lên luân phiên hai bên đầu.',
+    'Archer Pull-up (hỗ trợ)':'Kéo người lên lệch về một bên, tay còn lại gần như duỗi thẳng, có thể dùng dây hỗ trợ.',
+    'Decline Push-up':'Chống đẩy với chân đặt cao hơn tay (trên ghế) để tăng tải lên phần ngực trên và vai.',
+    'Pseudo Planche Push-up':'Chống đẩy với tay đặt lệch về phía hông, thân người nghiêng về trước để tăng tải lên vai trước.',
+    'Pistol Squat Progression':'Squat một chân, chân kia duỗi thẳng phía trước; có thể vịn hỗ trợ khi mới tập.',
+    'Handstand Hold (tựa tường)':'Chống tay trồng chuối, chân tựa vào tường, giữ thân thẳng và siết core.',
+    'Agility Drill':'Bài tập di chuyển đổi hướng nhanh (thang dây, cone) để cải thiện tốc độ phản xạ.',
+  };
+
+  function phaseIndexForWeek(w){ return w<=4?0:(w<=8?1:2); }
+  function dayData(week, dayIdx){ return PHASES[phaseIndexForWeek(week)].days[dayIdx]; }
+  function unitCount(dd){ if(!dd) return 0; return dd.mode==='circuit' ? dd.rounds*dd.items.length : dd.items.length; }
+
+  let state = { week:1, day:(new Date().getDay()+6)%7, weekChecks:{}, logs:[], stats:{activityDates:[], completedSlots:[]},
+    notes:{}, prs:{pullup:0, pushup:0, plank:0}, settings:{sound:true},
+    water:{date:'', ml:0}, reminder:{enabled:false, time:'18:00'} };
+  let currentMetric = 'weight';
+  let calMonth = new Date(); calMonth.setDate(1);
+  const WATER_GOAL_ML = 2000, CUP_ML = 250;
+
+  async function safeGetVersioned(key){
+    try{ const r = await window.storage.get(key, false); return r; }catch(e){ return null; }
+  }
+  async function loadPrefs(){
+    const r = await safeGetVersioned('prefs');
+    if(r && r.value){ try{ const p=JSON.parse(r.value); if(p.week) state.week=p.week; if(typeof p.day==='number') state.day=p.day; }catch(e){} }
+  }
+  async function savePrefs(){ try{ await window.storage.set('prefs', JSON.stringify({week:state.week, day:state.day}), false); }catch(e){} }
+
+  async function loadWeekChecks(){
+    const r = await safeGetVersioned('checkweek'+state.week);
+    if(r && r.value){ try{ state.weekChecks = JSON.parse(r.value); }catch(e){ state.weekChecks={}; } } else { state.weekChecks={}; }
+    for(let i=0;i<7;i++){
+      const dd = dayData(state.week, i); const n = unitCount(dd);
+      if(!Array.isArray(state.weekChecks[i]) || state.weekChecks[i].length!==n) state.weekChecks[i] = new Array(n).fill(false);
+    }
+  }
+  async function saveWeekChecks(){ try{ await window.storage.set('checkweek'+state.week, JSON.stringify(state.weekChecks), false); }catch(e){} }
+
+  async function loadLogs(){
+    const r = await safeGetVersioned('logs');
+    if(r && r.value){ try{ state.logs = JSON.parse(r.value); }catch(e){ state.logs=[]; } } else { state.logs=[]; }
+  }
+  async function saveLogs(){ try{ await window.storage.set('logs', JSON.stringify(state.logs), false); }catch(e){} }
+
+  async function loadStats(){
+    const r = await safeGetVersioned('stats');
+    if(r && r.value){ try{ state.stats = JSON.parse(r.value); }catch(e){} }
+    if(!state.stats.activityDates) state.stats.activityDates=[];
+    if(!state.stats.completedSlots) state.stats.completedSlots=[];
+  }
+  async function saveStats(){ try{ await window.storage.set('stats', JSON.stringify(state.stats), false); }catch(e){} }
+
+  async function loadNotes(){
+    const r = await safeGetVersioned('notes');
+    if(r && r.value){ try{ state.notes = JSON.parse(r.value); }catch(e){ state.notes={}; } } else { state.notes={}; }
+  }
+  async function saveNotes(){ try{ await window.storage.set('notes', JSON.stringify(state.notes), false); }catch(e){} }
+
+  async function loadPRs(){
+    const r = await safeGetVersioned('prs');
+    if(r && r.value){ try{ state.prs = JSON.parse(r.value); }catch(e){} }
+    if(!state.prs) state.prs = {pullup:0, pushup:0, plank:0};
+    ['pullup','pushup','plank'].forEach(k=>{ if(typeof state.prs[k]!=='number') state.prs[k]=0; });
+  }
+  async function savePRs(){ try{ await window.storage.set('prs', JSON.stringify(state.prs), false); }catch(e){} }
+
+  async function loadSettings(){
+    const r = await safeGetVersioned('settings');
+    if(r && r.value){ try{ state.settings = JSON.parse(r.value); }catch(e){} }
+    if(!state.settings) state.settings = {sound:true};
+    if(typeof state.settings.sound!=='boolean') state.settings.sound = true;
+  }
+  async function saveSettings(){ try{ await window.storage.set('settings', JSON.stringify(state.settings), false); }catch(e){} }
+
+  async function loadWater(){
+    const r = await safeGetVersioned('water');
+    if(r && r.value){ try{ state.water = JSON.parse(r.value); }catch(e){} }
+    if(!state.water || state.water.date !== todayStr()){ state.water = {date: todayStr(), ml:0}; }
+  }
+  async function saveWater(){ try{ await window.storage.set('water', JSON.stringify(state.water), false); }catch(e){} }
+
+  async function loadReminder(){
+    const r = await safeGetVersioned('reminder');
+    if(r && r.value){ try{ state.reminder = JSON.parse(r.value); }catch(e){} }
+    if(!state.reminder) state.reminder = {enabled:false, time:'18:00'};
+    if(!state.reminder.time) state.reminder.time = '18:00';
+  }
+  async function saveReminder(){ try{ await window.storage.set('reminder', JSON.stringify(state.reminder), false); }catch(e){} }
+
+  function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function computeStreak(){
+    const set = new Set(state.stats.activityDates);
+    let streak=0; let d=new Date();
+    while(true){
+      const s = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if(set.has(s)){ streak++; d.setDate(d.getDate()-1); } else break;
+    }
+    return streak;
+  }
+  function computeBestStreak(){
+    const dates = Array.from(new Set(state.stats.activityDates)).sort();
+    if(!dates.length) return 0;
+    let best=1, cur=1;
+    for(let i=1;i<dates.length;i++){
+      const prev = new Date(dates[i-1]); const now = new Date(dates[i]);
+      const diff = Math.round((now-prev)/86400000);
+      if(diff===1){ cur++; best=Math.max(best,cur); } else if(diff>1){ cur=1; }
+    }
+    return best;
+  }
+
+  const BADGES = [
+    {emoji:'🥇', name:'Buổi đầu tiên', cond:()=>state.stats.completedSlots.length>=1},
+    {emoji:'🏆', name:'10 buổi tập', cond:()=>state.stats.completedSlots.length>=10},
+    {emoji:'🔥', name:'Chuỗi 7 ngày', cond:()=>computeStreak()>=7},
+    {emoji:'⚡', name:'Chuỗi 30 ngày', cond:()=>computeStreak()>=30},
+    {emoji:'🧗', name:'Pull-up đầu tiên', cond:()=>state.logs.some(l=>parseFloat(l.pullup)>=1)},
+    {emoji:'💪', name:'Push-up 40+', cond:()=>state.logs.some(l=>parseFloat(l.pushup)>=40)},
+    {emoji:'🧘', name:'Plank 3 phút', cond:()=>state.logs.some(l=>parseFloat(l.plank)>=180)},
+  ];
+
+  // ---------- toast ----------
+  function showToast(text, isPR){
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = 'toast' + (isPR ? ' pr' : '');
+    el.textContent = text;
+    wrap.appendChild(el);
+    requestAnimationFrame(()=>{ el.classList.add('show'); });
+    setTimeout(()=>{
+      el.classList.remove('show');
+      setTimeout(()=>{ el.remove(); }, 350);
+    }, isPR ? 3200 : 2200);
+  }
+
+  function ringSVG(pct, color){
+    const r=16, c=2*Math.PI*r; const off=c*(1-Math.min(1,pct));
+    return `<svg width="44" height="44" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="${r}" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="4"/>
+      <circle cx="20" cy="20" r="${r}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round"
+        stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 20 20)"/></svg>`;
+  }
+
+  function renderRings(){
+    const row = document.getElementById('ringsRow');
+    document.getElementById('ringsWeekLbl').textContent = 'Tuần ' + state.week;
+    let html='';
+    for(let idx=0; idx<6; idx++){
+      const dd = dayData(state.week, idx);
+      const checks = state.weekChecks[idx] || [];
+      const n = unitCount(dd);
+      const done = checks.filter(Boolean).length;
+      const pct = n ? done/n : 0;
+      const type = DAY_TYPES[idx]; const color = TYPE_COLOR[type];
+      html += `<div class="ring-item">${ringSVG(pct,color)}<div class="pct" style="color:${color}">${Math.round(pct*100)}%</div>
+        <div class="lbl">${TYPE_LABEL[type]}</div></div>`;
+    }
+    row.innerHTML = html;
+  }
+
+  function renderStreakBadges(){
+    document.getElementById('streakNum').textContent = computeStreak() + ' ngày';
+    const row = document.getElementById('badgeRow');
+    row.innerHTML = BADGES.map(b=>{
+      const unlocked = b.cond();
+      return `<div class="badge ${unlocked?'unlocked':''}"><div class="b-emoji">${b.emoji}</div><div class="b-name">${b.name}</div></div>`;
+    }).join('');
+  }
+
+  // ---------- calendar heatmap ----------
+  function renderCalendar(){
+    const y = calMonth.getFullYear(), m = calMonth.getMonth();
+    document.getElementById('calLabel').textContent = calMonth.toLocaleDateString('vi-VN', {month:'long', year:'numeric'});
+    const first = new Date(y, m, 1);
+    const startOffset = (first.getDay()+6)%7; // Monday=0
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const set = new Set(state.stats.activityDates);
+    const today = todayStr();
+    let html='';
+    for(let i=0;i<startOffset;i++) html += `<div class="cal-cell empty"></div>`;
+    let count=0;
+    for(let d=1; d<=daysInMonth; d++){
+      const s = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const active = set.has(s); if(active) count++;
+      const isToday = s===today;
+      html += `<div class="cal-cell ${active?'active':''} ${isToday?'today':''}">${d}</div>`;
+    }
+    document.getElementById('calGrid').innerHTML = html;
+    document.getElementById('calCount').textContent = count + ' buổi tập tháng này';
+    document.getElementById('calBestStreak').textContent = 'Chuỗi dài nhất: ' + computeBestStreak() + ' ngày';
+    const now = new Date();
+    document.getElementById('calNext').disabled = (y===now.getFullYear() && m===now.getMonth());
+  }
+  document.getElementById('calPrev').addEventListener('click', ()=>{ calMonth.setMonth(calMonth.getMonth()-1); renderCalendar(); });
+  document.getElementById('calNext').addEventListener('click', ()=>{
+    const now = new Date();
+    if(calMonth.getFullYear()===now.getFullYear() && calMonth.getMonth()===now.getMonth()) return;
+    calMonth.setMonth(calMonth.getMonth()+1); renderCalendar();
+  });
+
+  function renderWeekBar(){
+    document.getElementById('wkNum').textContent = `Tuần ${state.week} / 12`;
+    const ph = PHASES[phaseIndexForWeek(state.week)];
+    document.getElementById('wkPhase').textContent = `Giai đoạn ${phaseIndexForWeek(state.week)+1} · ${ph.name}`;
+    document.getElementById('navPhase').textContent = `${ph.range} · ${ph.name}`;
+    document.getElementById('prevWeek').disabled = state.week<=1;
+    document.getElementById('nextWeek').disabled = state.week>=12;
+  }
+
+  function renderDayScroll(){
+    const todayIdx = (new Date().getDay()+6)%7;
+    let html='';
+    for(let i=0;i<7;i++){
+      const type = DAY_TYPES[i]; const color = TYPE_COLOR[type]; const active = i===state.day;
+      html += `<div class="day-chip ${active?'active':''} ${i===todayIdx?'today':''}" data-day="${i}"
+        style="${active?`background:${color}22;border-color:${color};`:''}">
+        <div class="d-short" style="${active?`color:${color}`:''}">${DAY_SHORT[i]}</div>
+        <div class="d-dot" style="background:${color}"></div><div class="d-type">${TYPE_LABEL[type]}</div></div>`;
+    }
+    document.getElementById('dayScroll').innerHTML = html;
+    document.querySelectorAll('.day-chip').forEach(el=>{
+      el.addEventListener('click', ()=>{ state.day = parseInt(el.dataset.day); savePrefs(); render(); });
+    });
+  }
+
+  function parseSeconds(scheme){
+    let m = scheme.match(/(\d+)\s*s\b/); if(m) return parseInt(m[1]);
+    m = scheme.match(/(\d+)\s*phút/); if(m) return parseInt(m[1])*60;
+    return null;
+  }
+
+  async function markSlotProgress(){
+    const today = todayStr();
+    if(!state.stats.activityDates.includes(today)) state.stats.activityDates.push(today);
+    const checks = state.weekChecks[state.day] || [];
+    const dd = dayData(state.week, state.day);
+    const n = unitCount(dd);
+    const done = checks.filter(Boolean).length;
+    if(n>0 && done===n){
+      const slotId = state.week+'-'+state.day;
+      if(!state.stats.completedSlots.includes(slotId)) state.stats.completedSlots.push(slotId);
+    }
+    await saveStats();
+    renderCalendar();
+  }
+
+  function renderWorkout(){
+    const card = document.getElementById('workoutCard');
+    const dd = dayData(state.week, state.day);
+    const type = DAY_TYPES[state.day]; const color = TYPE_COLOR[type];
+    card.style.setProperty('--accent-color', color);
+
+    if(!dd){
+      card.innerHTML = `<div class="rest-day"><div class="r-emoji">😴</div>
+        <div class="wc-title" style="margin-bottom:8px;">Nghỉ ngơi</div>
+        <p>Chủ nhật là ngày phục hồi. Ngủ đủ, uống nước, giãn cơ nhẹ để cơ bắp phát triển tốt hơn cho tuần sau.</p></div>`;
+      return;
+    }
+
+    const checks = state.weekChecks[state.day] || [];
+    const n = unitCount(dd); const done = checks.filter(Boolean).length;
+    const title = dd.titleOverride || TYPE_LABEL[type];
+
+    let inner = `<div class="wc-head"><div class="wc-title">${title}</div><div class="wc-progress">${done}/${n}</div></div>`;
+    if(dd.note) inner += `<div class="wc-note">${dd.note}</div>`;
+
+    if(dd.mode === 'list'){
+      inner += `<div class="ex-list">`;
+      dd.items.forEach((it,i)=>{
+        const isDone = !!checks[i];
+        const secs = parseSeconds(it.scheme);
+        inner += `<div class="ex-item ${isDone?'done':''}" data-idx="${i}">
+          <div class="checkbox"><svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M4 12l5 5L20 6" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="ex-name" data-name="${it.name}">${it.name}</div>
+          <div class="ex-scheme">${it.scheme}</div>
+          ${secs ? `<div class="clock-btn" data-secs="${secs}">⏱</div>` : ''}
+        </div>`;
+      });
+      inner += `</div>`;
+    } else if(dd.mode === 'circuit'){
+      const per = dd.items.length;
+      inner += `<div class="circuit-rounds">`;
+      for(let r=0;r<dd.rounds;r++){
+        let roundDone = true;
+        let roundInner = '';
+        dd.items.forEach((it,ii)=>{
+          const idx = r*per+ii;
+          const isDone = !!checks[idx];
+          if(!isDone) roundDone = false;
+          const secs = parseSeconds(it.scheme);
+          roundInner += `<div class="ex-item ${isDone?'done':''}" data-idx="${idx}">
+            <div class="checkbox"><svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+              <path d="M4 12l5 5L20 6" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="ex-name" data-name="${it.name}">${it.name}</div>
+            <div class="ex-scheme">${it.scheme}</div>
+            ${secs ? `<div class="clock-btn" data-secs="${secs}">⏱</div>` : ''}
+          </div>`;
+        });
+        inner += `<div class="round-group ${roundDone?'done':''}">
+          <div class="round-group-title">Vòng ${r+1}${roundDone?' ✓':''}</div>
+          <div class="ex-list">${roundInner}</div>
+        </div>`;
+      }
+      inner += `</div>`;
+    }
+    card.innerHTML = inner;
+
+    card.querySelectorAll('.ex-item').forEach(el=>{
+      el.addEventListener('click', async (e)=>{
+        const i = parseInt(el.dataset.idx);
+        state.weekChecks[state.day][i] = !state.weekChecks[state.day][i];
+        renderWorkout(); renderRings(); renderStreakBadges();
+        await saveWeekChecks(); await markSlotProgress();
+      });
+    });
+    card.querySelectorAll('.ex-name').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); openInfo(el.dataset.name); });
+    });
+    card.querySelectorAll('.clock-btn').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); openTimerWith(parseInt(el.dataset.secs)); });
+    });
+  }
+
+  function renderTip(){
+    const m = state.week % 3; let txt='';
+    if(m===1) txt='+1 lần lặp mỗi hiệp so với tuần trước.';
+    else if(m===2) txt='+1 hiệp cho bài chính so với tuần trước.';
+    else txt='Giảm thời gian nghỉ giữa hiệp xuống 10–15 giây.';
+    document.getElementById('tipText').textContent = txt;
+  }
+
+  // ---------- day notes ----------
+  function currentNoteKey(){ return state.week+'-'+state.day; }
+  function renderDayNote(){
+    const key = currentNoteKey();
+    document.getElementById('dayNoteInput').value = state.notes[key] || '';
+  }
+  document.getElementById('saveNote').addEventListener('click', async ()=>{
+    const key = currentNoteKey();
+    const val = document.getElementById('dayNoteInput').value.trim();
+    if(val) state.notes[key] = val; else delete state.notes[key];
+    await saveNotes();
+    const btn = document.getElementById('saveNote'); const old = btn.textContent;
+    btn.textContent = 'Đã lưu ✓'; setTimeout(()=>{ btn.textContent = old; }, 1200);
+  });
+
+  // ---------- warm-up collapse ----------
+  document.getElementById('warmupToggle').addEventListener('click', ()=>{
+    document.getElementById('warmupBody').classList.toggle('open');
+    document.getElementById('warmupChevron').classList.toggle('open');
+  });
+
+  function renderLogHistory(){
+    const el = document.getElementById('logHistory');
+    if(!state.logs.length){ el.innerHTML = `<div class="empty-log">Chưa có số đo nào được ghi lại.</div>`; return; }
+    el.innerHTML = state.logs.slice().reverse().slice(0,10).map(l=>{
+      const parts=[];
+      if(l.weight) parts.push(l.weight+'kg');
+      if(l.pullup) parts.push('PU×'+l.pullup);
+      if(l.pushup) parts.push('P×'+l.pushup);
+      if(l.plank) parts.push(l.plank+'s plank');
+      return `<div class="log-entry"><div class="le-date">${l.date}</div><div class="le-stats">${parts.join(' · ')||'—'}</div></div>`;
+    }).join('');
+  }
+
+  const METRICS = [
+    {key:'weight', label:'Cân nặng', color:'var(--posture)'},
+    {key:'eo', label:'Vòng eo', color:'var(--legs)'},
+    {key:'pullup', label:'Pull-up', color:'var(--pull)'},
+    {key:'pushup', label:'Push-up', color:'var(--push)'},
+    {key:'plank', label:'Plank', color:'var(--athletic)'},
+  ];
+  function renderMetricPills(){
+    document.getElementById('metricPills').innerHTML = METRICS.map(m=>
+      `<div class="metric-pill ${currentMetric===m.key?'active':''}" data-m="${m.key}"
+        style="${currentMetric===m.key?`background:${m.color};border-color:${m.color}`:''}">${m.label}</div>`
+    ).join('');
+    document.querySelectorAll('.metric-pill').forEach(el=>{
+      el.addEventListener('click', ()=>{ currentMetric = el.dataset.m; renderMetricPills(); renderChart(); });
+    });
+  }
+  function renderChart(){
+    const area = document.getElementById('chartArea');
+    const metric = METRICS.find(m=>m.key===currentMetric);
+    const points = state.logs.map(l=>({val:parseFloat(l[currentMetric])})).filter(p=>!isNaN(p.val));
+    if(points.length<2){ area.innerHTML = `<div class="empty-log">Cần ít nhất 2 lần đo để vẽ biểu đồ "${metric.label}".</div>`; return; }
+    const vals = points.map(p=>p.val); const min=Math.min(...vals), max=Math.max(...vals); const range=(max-min)||1;
+    const w=300,h=110,pad=12;
+    const stepX = (w-2*pad)/(points.length-1);
+    const coords = points.map((p,i)=>({ x: pad+i*stepX, y: h-pad-((p.val-min)/range)*(h-2*pad), val:p.val }));
+    const path = coords.map((c,i)=>(i===0?'M':'L')+c.x.toFixed(1)+','+c.y.toFixed(1)).join(' ');
+    const dots = coords.map(c=>`<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="3.2" fill="${metric.color}"/>`).join('');
+    const last = coords[coords.length-1].val;
+    area.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:150px;">
+        <path d="${path}" fill="none" stroke="${metric.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}
+      </svg>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <span style="font-size:11px;color:var(--text-faint);">${points.length} lần đo</span>
+        <span style="font-family:'Inter Tight';font-weight:800;font-size:20px;color:${metric.color}">${last}</span>
+      </div>`;
+  }
+
+  function render(){
+    renderRings(); renderStreakBadges(); renderCalendar(); renderWeekBar(); renderDayScroll();
+    renderWorkout(); renderDayNote(); renderTip(); renderLogHistory(); renderMetricPills(); renderChart();
+    renderWater(); renderReminderUI();
+  }
+
+  // ---------- info modal ----------
+  function openInfo(name){
+    document.getElementById('infoTitle').textContent = name;
+    document.getElementById('infoBody').textContent = EXERCISE_INFO[name] || 'Thực hiện đúng kỹ thuật, kiểm soát tốc độ và hít thở đều trong suốt động tác.';
+    document.getElementById('infoOverlay').classList.add('open');
+  }
+  document.getElementById('infoClose').addEventListener('click', ()=>document.getElementById('infoOverlay').classList.remove('open'));
+  document.getElementById('infoOverlay').addEventListener('click', (e)=>{ if(e.target.id==='infoOverlay') e.currentTarget.classList.remove('open'); });
+
+  // ---------- timer ----------
+  let timerSeconds = 60, timerRemaining = 60, timerInterval = null, timerRunning = false;
+  const PRESETS = [15,30,45,60,90,120];
+  function fmt(s){ const m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); }
+  function renderPresets(){
+    document.getElementById('timerPresets').innerHTML = PRESETS.map(p=>
+      `<div class="preset-btn" data-s="${p}">${p}s</div>`).join('');
+    document.querySelectorAll('.preset-btn').forEach(el=>{
+      el.addEventListener('click', ()=>{ setTimerSeconds(parseInt(el.dataset.s)); });
+    });
+  }
+  function setTimerSeconds(s){
+    timerSeconds = s; timerRemaining = s; updateDisplay();
+    if(timerInterval){ clearInterval(timerInterval); timerInterval=null; timerRunning=false; document.getElementById('timerStart').textContent='Bắt đầu'; }
+  }
+  function updateDisplay(){ document.getElementById('timerDisplay').textContent = fmt(timerRemaining); }
+  function beep(){
+    if(!state.settings.sound) return;
+    try{
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; o.type='sine';
+      g.gain.setValueAtTime(0.2, ctx.currentTime);
+      o.start(); o.stop(ctx.currentTime+0.35);
+    }catch(e){}
+    try{ navigator.vibrate && navigator.vibrate([200,80,200]); }catch(e){}
+  }
+  function toggleTimer(){
+    if(timerRunning){
+      clearInterval(timerInterval); timerInterval=null; timerRunning=false; document.getElementById('timerStart').textContent='Tiếp tục';
+    } else {
+      if(timerRemaining<=0) timerRemaining = timerSeconds;
+      timerRunning = true; document.getElementById('timerStart').textContent='Tạm dừng';
+      timerInterval = setInterval(()=>{
+        timerRemaining--; updateDisplay();
+        if(timerRemaining<=0){ clearInterval(timerInterval); timerInterval=null; timerRunning=false;
+          document.getElementById('timerStart').textContent='Bắt đầu'; beep(); }
+      },1000);
+    }
+  }
+  function openTimerWith(secs){ setTimerSeconds(secs); document.getElementById('timerOverlay').classList.add('open'); }
+  document.getElementById('timerFab').addEventListener('click', ()=>document.getElementById('timerOverlay').classList.add('open'));
+  document.getElementById('timerClose').addEventListener('click', ()=>document.getElementById('timerOverlay').classList.remove('open'));
+  document.getElementById('timerOverlay').addEventListener('click', (e)=>{ if(e.target.id==='timerOverlay') e.currentTarget.classList.remove('open'); });
+  document.getElementById('timerStart').addEventListener('click', toggleTimer);
+  document.getElementById('timerReset').addEventListener('click', ()=>setTimerSeconds(timerSeconds));
+  renderPresets(); updateDisplay();
+
+  // ---------- log form + PR detection ----------
+  document.getElementById('saveLog').addEventListener('click', async ()=>{
+    const entry = {
+      date: new Date().toLocaleDateString('vi-VN'),
+      weight: document.getElementById('fWeight').value, vai: document.getElementById('fVai').value,
+      nguc: document.getElementById('fNguc').value, eo: document.getElementById('fEo').value,
+      pullup: document.getElementById('fPullup').value, pushup: document.getElementById('fPushup').value,
+      plank: document.getElementById('fPlank').value,
+    };
+    state.logs.push(entry); await saveLogs();
+
+    const prHits = [];
+    const pu = parseFloat(entry.pullup), ps = parseFloat(entry.pushup), pl = parseFloat(entry.plank);
+    if(!isNaN(pu) && pu > state.prs.pullup){ state.prs.pullup = pu; prHits.push('Pull-up '+pu+' lần'); }
+    if(!isNaN(ps) && ps > state.prs.pushup){ state.prs.pushup = ps; prHits.push('Push-up '+ps+' lần'); }
+    if(!isNaN(pl) && pl > state.prs.plank){ state.prs.plank = pl; prHits.push('Plank '+pl+'s'); }
+    if(prHits.length){ await savePRs(); showToast('🎉 Kỷ lục mới! ' + prHits.join(' · '), true); }
+
+    renderLogHistory(); renderChart(); renderStreakBadges();
+    ['fWeight','fVai','fNguc','fEo','fPullup','fPushup','fPlank'].forEach(id=>document.getElementById(id).value='');
+    const btn = document.getElementById('saveLog'); const old = btn.textContent;
+    btn.textContent = 'Đã lưu ✓'; setTimeout(()=>{ btn.textContent = old; }, 1400);
+    if(!prHits.length) showToast('Đã lưu số đo hôm nay');
+  });
+
+  // ---------- water tracker ----------
+  function renderWater(){
+    const cups = Math.round(WATER_GOAL_ML / CUP_ML);
+    const filled = Math.min(cups, Math.round(state.water.ml / CUP_ML));
+    document.getElementById('waterCups').innerHTML = Array.from({length:cups}, (_,i)=>
+      `<div class="water-cup ${i<filled?'filled':''}" data-i="${i}">💧</div>`).join('');
+    document.querySelectorAll('.water-cup').forEach(el=>{
+      el.addEventListener('click', async ()=>{
+        const i = parseInt(el.dataset.i);
+        state.water.ml = (i+1)*CUP_ML <= state.water.ml ? i*CUP_ML : (i+1)*CUP_ML;
+        state.water.date = todayStr();
+        await saveWater(); renderWater();
+      });
+    });
+    const pct = Math.min(100, Math.round((state.water.ml/WATER_GOAL_ML)*100));
+    document.getElementById('waterBarFill').style.width = pct+'%';
+    document.getElementById('waterAmt').textContent = state.water.ml + ' ml';
+    document.getElementById('waterGoalLbl').textContent = filled + ' / ' + cups + ' cốc';
+  }
+  document.getElementById('waterPlus').addEventListener('click', async ()=>{
+    state.water.ml = Math.min(WATER_GOAL_ML + CUP_ML*4, state.water.ml + CUP_ML);
+    state.water.date = todayStr();
+    await saveWater(); renderWater();
+  });
+  document.getElementById('waterMinus').addEventListener('click', async ()=>{
+    state.water.ml = Math.max(0, state.water.ml - CUP_ML);
+    state.water.date = todayStr();
+    await saveWater(); renderWater();
+  });
+
+  // ---------- workout reminder ----------
+  function renderReminderUI(){
+    document.getElementById('reminderSwitch').classList.toggle('on', !!state.reminder.enabled);
+    document.getElementById('reminderTime').value = state.reminder.time;
+  }
+  let reminderNotifiedDate = null;
+  function checkReminder(){
+    if(!state.reminder.enabled) return;
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    const now = new Date();
+    const hhmm = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const today = todayStr();
+    if(hhmm === state.reminder.time && reminderNotifiedDate !== today){
+      reminderNotifiedDate = today;
+      try{
+        new Notification('V-ATHLETE', { body:'Đến giờ tập rồi! Hôm nay là buổi ' + (dayData(state.week,state.day) ? (dayData(state.week,state.day).titleOverride || TYPE_LABEL[DAY_TYPES[state.day]]) : 'Nghỉ') + '.' });
+      }catch(e){}
+    }
+  }
+  setInterval(checkReminder, 30000);
+  document.getElementById('reminderSwitch').addEventListener('click', async ()=>{
+    if(!state.reminder.enabled){
+      if('Notification' in window){
+        let perm = Notification.permission;
+        if(perm !== 'granted'){ perm = await Notification.requestPermission().catch(()=> 'denied'); }
+        if(perm !== 'granted'){ showToast('Cần cho phép thông báo để bật nhắc nhở'); return; }
+      } else {
+        showToast('Trình duyệt này không hỗ trợ thông báo'); return;
+      }
+    }
+    state.reminder.enabled = !state.reminder.enabled;
+    renderReminderUI(); await saveReminder();
+    showToast(state.reminder.enabled ? 'Đã bật nhắc nhở tập luyện' : 'Đã tắt nhắc nhở');
+  });
+  document.getElementById('reminderTime').addEventListener('change', async (e)=>{
+    state.reminder.time = e.target.value; await saveReminder();
+  });
+
+  // ---------- install as app ----------
+  let deferredInstallPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault(); deferredInstallPrompt = e; installBtn.classList.add('show');
+  });
+  window.addEventListener('appinstalled', ()=>{ installBtn.classList.remove('show'); deferredInstallPrompt = null; showToast('Đã cài đặt V-ATHLETE'); });
+  installBtn.addEventListener('click', async ()=>{
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      installBtn.classList.remove('show');
+    } else {
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      showToast(isIOS ? 'Chạm nút Chia sẻ rồi chọn "Thêm vào MH chính"' : 'Mở menu trình duyệt và chọn "Cài đặt ứng dụng"');
+    }
+  });
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(isStandalone) installBtn.classList.remove('show');
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+
+  // ---------- week nav ----------
+  document.getElementById('prevWeek').addEventListener('click', async ()=>{
+    if(state.week<=1) return; state.week--; await savePrefs(); await loadWeekChecks(); render();
+  });
+  document.getElementById('nextWeek').addEventListener('click', async ()=>{
+    if(state.week>=12) return; state.week++; await savePrefs(); await loadWeekChecks(); render();
+  });
+
+  // ---------- AI coach ----------
+  function buildContext(){
+    const ph = PHASES[phaseIndexForWeek(state.week)];
+    const dd = dayData(state.week, state.day);
+    const dayTitle = dd ? (dd.titleOverride || TYPE_LABEL[DAY_TYPES[state.day]]) : 'Nghỉ ngơi';
+    const lastLog = state.logs[state.logs.length-1];
+    const lastLogStr = lastLog ? `Lần đo gần nhất (${lastLog.date}): cân nặng ${lastLog.weight||'?'}kg, vòng eo ${lastLog.eo||'?'}cm, pull-up tối đa ${lastLog.pullup||'?'}, push-up tối đa ${lastLog.pushup||'?'}, plank ${lastLog.plank||'?'}s.` : 'Chưa có số đo nào được ghi lại.';
+    return `Người tập đang ở Tuần ${state.week}/12 (Giai đoạn: ${ph.name}). Hôm nay là buổi "${dayTitle}". Chuỗi ngày tập liên tiếp: ${computeStreak()} ngày. ${lastLogStr}`;
+  }
+  function buildLocalCoachReply(question, context){
+    const q = (question || '').toLowerCase();
+    if(/đau|cổ tay|vai|lưng|nhức|chấn thương/.test(q)){
+      return `Dựa trên ${context}, hãy ưu tiên giảm tải 1–2 buổi, giữ kỹ thuật chặt và giảm số lần lặp. Nếu đau kéo dài hoặc tăng dần, nên nghỉ tập và hỏi bác sĩ/physio.`;
+    }
+    if(/tiến bộ|tốt không|đang tiến bộ|so với/.test(q)){
+      return `Dựa trên ${context}, tiến trình sẽ tốt nếu bạn vẫn duy trì đều đặn, ngủ đủ và ăn đủ protein. Nếu chưa thấy thay đổi, hãy tập trung vào kỹ thuật trước rồi mới tăng tải.`;
+    }
+    if(/tập gì trọng tâm|trọng tâm|tuần này/.test(q)){
+      return `Dựa trên ${context}, tuần này nên ưu tiên kỹ thuật đúng, nghỉ đủ và tăng dần nhẹ nhàng. Đừng cố ép số lượng nếu cảm thấy quá sức.`;
+    }
+    return `Dựa trên ${context}, hãy làm 3 điều trước: tập đúng kỹ thuật, tăng dần nhẹ nhàng, và ngủ đủ. Nếu bạn hỏi cụ thể hơn về đau, số lượng hay tiến độ, mình có thể đưa lời khuyên sát hơn.`;
+  }
+
+  async function askCoach(question){
+    const loadingEl = document.getElementById('aiLoading'); const answerEl = document.getElementById('aiAnswer');
+    loadingEl.style.display='flex'; answerEl.style.display='none';
+    const context = buildContext();
+    const text = buildLocalCoachReply(question, context);
+    answerEl.textContent = text;
+    loadingEl.style.display='none'; answerEl.style.display='block';
+  }
+  document.getElementById('aiSend').addEventListener('click', ()=>{
+    const q = document.getElementById('aiInput').value.trim();
+    if(!q) return; askCoach(q);
+  });
+  document.querySelectorAll('.ai-chip').forEach(el=>{
+    el.addEventListener('click', ()=>{ document.getElementById('aiInput').value = el.dataset.q; askCoach(el.dataset.q); });
+  });
+
+  // ---------- settings sheet ----------
+  document.getElementById('settingsFab').addEventListener('click', ()=>document.getElementById('settingsOverlay').classList.add('open'));
+  document.getElementById('settingsClose').addEventListener('click', ()=>document.getElementById('settingsOverlay').classList.remove('open'));
+  document.getElementById('settingsOverlay').addEventListener('click', (e)=>{ if(e.target.id==='settingsOverlay') e.currentTarget.classList.remove('open'); });
+
+  function renderSoundSwitch(){
+    document.getElementById('soundSwitch').classList.toggle('on', !!state.settings.sound);
+  }
+  document.getElementById('soundSwitch').addEventListener('click', async ()=>{
+    state.settings.sound = !state.settings.sound; renderSoundSwitch(); await saveSettings();
+  });
+
+  const ALL_KNOWN_KEYS = ['prefs','logs','stats','notes','prs','settings','water','reminder'];
+  async function collectAllKeys(){
+    const keys = new Set(ALL_KNOWN_KEYS);
+    for(let w=1; w<=12; w++) keys.add('checkweek'+w);
+    try{
+      const listed = await window.storage.list('', false);
+      if(listed && listed.keys){ listed.keys.forEach(k=>keys.add(k)); }
+    }catch(e){}
+    return Array.from(keys);
+  }
+
+  document.getElementById('exportBtn').addEventListener('click', async ()=>{
+    const keys = await collectAllKeys();
+    const bundle = {};
+    for(const k of keys){
+      const r = await safeGetVersioned(k);
+      if(r && typeof r.value !== 'undefined') bundle[k] = r.value;
+    }
+    const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString(), data:bundle}, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'v-athlete-backup-'+todayStr()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Đã xuất tệp sao lưu');
+  });
+
+  document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev)=>{
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        const data = parsed.data || parsed;
+        for(const k of Object.keys(data)){
+          await window.storage.set(k, data[k], false);
+        }
+        await loadPrefs(); await loadWeekChecks(); await loadLogs(); await loadStats(); await loadNotes(); await loadPRs(); await loadSettings();
+        await loadWater(); await loadReminder();
+        renderSoundSwitch();
+        render();
+        showToast('Đã nhập dữ liệu thành công');
+        document.getElementById('settingsOverlay').classList.remove('open');
+      }catch(err){
+        showToast('Tệp không hợp lệ, thử lại nhé');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', ()=>document.getElementById('resetConfirm').classList.add('open'));
+  document.getElementById('resetCancel').addEventListener('click', ()=>document.getElementById('resetConfirm').classList.remove('open'));
+  document.getElementById('resetOk').addEventListener('click', async ()=>{
+    const keys = await collectAllKeys();
+    for(const k of keys){
+      try{ const r = await safeGetVersioned(k); if(r) await window.storage.delete(k, false); }catch(e){}
+    }
+    state = { week:1, day:(new Date().getDay()+6)%7, weekChecks:{}, logs:[], stats:{activityDates:[], completedSlots:[]},
+      notes:{}, prs:{pullup:0, pushup:0, plank:0}, settings:{sound:true},
+      water:{date:todayStr(), ml:0}, reminder:{enabled:false, time:'18:00'} };
+    await loadWeekChecks();
+    document.getElementById('resetConfirm').classList.remove('open');
+    document.getElementById('settingsOverlay').classList.remove('open');
+    renderSoundSwitch();
+    render();
+    showToast('Đã đặt lại toàn bộ dữ liệu');
+  });
+
+  // ---------- init ----------
+  (async function init(){
+    await loadPrefs(); await loadWeekChecks(); await loadLogs(); await loadStats(); await loadNotes(); await loadPRs(); await loadSettings();
+    await loadWater(); await loadReminder();
+    renderSoundSwitch();
+    render();
+    const loading = document.getElementById('loading');
+    loading.style.opacity='0'; setTimeout(()=>{ loading.style.display='none'; }, 400);
+  })();
+})();
+</script>
+</body>
+</html>
